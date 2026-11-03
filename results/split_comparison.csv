@@ -1,0 +1,17 @@
+target,model,AUC,MAE,RMSE,split
+Word Identification,Logistic Regression,0.657,,,school
+Word Identification,Decision Tree,0.58,,,school
+Word Identification,Linear Regression,0.67,6.53,8.29,school
+Word Identification,Decision Tree Regressor,0.574,6.93,8.74,school
+Word Attack,Logistic Regression,0.627,,,school
+Word Attack,Decision Tree,0.554,,,school
+Word Attack,Linear Regression,0.627,5.75,7.1,school
+Word Attack,Decision Tree Regressor,0.536,5.93,7.34,school
+Word Identification,Logistic Regression,0.677,,,student
+Word Identification,Decision Tree,0.611,,,student
+Word Identification,Linear Regression,0.681,6.45,8.19,student
+Word Identification,Decision Tree Regressor,0.601,6.85,8.62,student
+Word Attack,Logistic Regression,0.626,,,student
+Word Attack,Decision Tree,0.554,,,student
+Word Attack,Linear Regression,0.637,5.66,7.0,student
+Word Attack,Decision Tree Regressor,0.555,5.81,7.28,student
