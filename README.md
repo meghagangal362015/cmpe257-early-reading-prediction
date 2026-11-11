@@ -39,39 +39,59 @@ https://papers.neurips.cc/paper_files/paper/2024/hash/862170d83a17b7c2ef3c5a58e7
 
 ## Data Preprocessing
 
-The preprocessing steps will include:
+Following the paper, the supervised experiments use 706 complete labeled students. The dataset contains no missing values for the selected 16 features and the two reading targets.
 
-- Handling missing values.
-- Encoding categorical variables.
-- Standardizing assessment scores.
-- Detecting and handling anomalies.
-- Selecting relevant features.
-- Dividing the data into training, validation, and testing sets.
-- Checking for class imbalance and data leakage.
+The 16 paper features include:
+
+- Eight initial reading assessment features
+- Gender
+- Intervention group
+- Age
+- Number of at-risk students in the class
+- Teacher/classroom assessment features
+
+Students are grouped by school, and preprocessing is performed inside each cross-validation fold to prevent data leakage.
 
 ## Models
 
-We plan to compare the following models:
+The project compares:
 
-- Linear Regression
-- Decision Tree
+- Logistic Regression and Decision Tree baseline models
 - Random Forest
 - XGBoost
 - Multi-Layer Perceptron (MLP)
-- MaskMLP-inspired neural network for incomplete data
+- MaskMLP-inspired neural network
+
+The Random Forest and XGBoost experiments are implemented using five-fold cross-validation grouped by school.
 
 ## Evaluation
 
-The models will be evaluated using appropriate performance measures, including:
+The project predicts two binary reading-progress targets:
+
+- Word Identification
+- Word Attack
+
+The main evaluation metrics are:
 
 - Accuracy
-- Area Under the ROC Curve (AUC)
-- Mean Absolute Error (MAE)
-- Root Mean Squared Error (RMSE)
-- Classification reports
-- Feature importance analysis
+- Area under the Precision–Recall curve (PR-AUC)
+- Standard deviation across the five folds
+- Feature-importance analysis
 
-The final evaluation metrics will depend on whether the prediction task is treated as a regression or classification problem.
+The paper-aligned experiments do not use a fixed 70/15/15 train-validation-test split. Unlabeled students may be used for MaskMLP pretraining, but supervised models use labeled students only.
+
+## Paper-Aligned Results
+
+| Target | Model | Mean Accuracy | Accuracy SD | Mean PR-AUC | PR-AUC SD |
+|---|---|---:|---:|---:|---:|
+| Word Identification | Random Forest | 0.6375 | 0.0614 | 0.6920 | 0.0929 |
+| Word Identification | XGBoost | 0.6177 | 0.0385 | 0.6835 | 0.1030 |
+| Word Attack | Random Forest | 0.5863 | 0.0551 | 0.6686 | 0.0992 |
+| Word Attack | XGBoost | 0.6146 | 0.0699 | 0.6786 | 0.1024 |
+
+Random Forest performed slightly better for Word Identification, while XGBoost performed slightly better for Word Attack. Feature-importance results are available in:
+
+`results/random_forest_feature_importance.csv`
 
 ## Team Members
 
@@ -96,4 +116,5 @@ cmpe257-early-reading-prediction/
 ├── reports/
 ├── requirements.txt
 └── README.md
+```
 
