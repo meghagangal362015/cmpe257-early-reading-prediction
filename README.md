@@ -93,12 +93,40 @@ Random Forest performed slightly better for Word Identification, while XGBoost p
 
 `results/random_forest_feature_importance.csv`
 
+## Extended Model Analysis
+
+Random Forest and XGBoost were further evaluated through hyperparameter tuning and feature-group ablation.
+
+The tuning experiments used the same five-fold cross-validation grouped by school. The tested parameters included:
+
+- Random Forest number of estimators
+- Random Forest maximum depth
+- Random Forest minimum samples per leaf
+- XGBoost number of estimators
+- XGBoost maximum depth
+- XGBoost learning rate
+
+A feature-group ablation study was performed by removing:
+
+- Reading assessment features
+- Student features
+- Classroom features
+
+The full-feature model was used as the baseline. A negative PR-AUC change means that removing the feature group reduced performance.
+
+Detailed results are available in:
+
+- `results/random_forest_tuning_results.csv`
+- `results/xgboost_tuning_results.csv`
+- `results/tuned_model_comparison.csv`
+- `results/feature_group_ablation_results.csv`
+
 ## Team Members
 
 | Team Member | Responsibility |
 |---|---|
 | Anupama Singh | Baseline models using Linear Regression and Decision Tree |
-| Megha Gangal | Random Forest, XGBoost, and feature-importance analysis |
+| Megha Gangal | Random Forest, XGBoost, hyperparameter tuning, feature ablation, and feature-importance analysis |
 | Supriya Kavitha Venkatesan | MLP/MaskMLP-inspired model and comparison analysis |
 
 All team members will contribute to preprocessing, documentation, report writing, presentation preparation, and final review.
