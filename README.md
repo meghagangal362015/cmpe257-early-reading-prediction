@@ -126,7 +126,7 @@ Detailed results are available in:
 | Team Member | Responsibility |
 |---|---|
 | Anupama Singh | Baseline models using Linear Regression and Decision Tree |
-| Megha Gangal | Random Forest, XGBoost, hyperparameter tuning, feature ablation, and feature-importance analysis |
+| Megha Gangal | Random Forest, XGBoost, hyperparameter tuning, feature ablation and feature-importance analysis |
 | Supriya Kavitha Venkatesan | MLP/MaskMLP-inspired model and comparison analysis |
 
 All team members will contribute to preprocessing, documentation, report writing, presentation preparation, and final review.
