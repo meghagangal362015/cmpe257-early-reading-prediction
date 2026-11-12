@@ -1,0 +1,25 @@
+split,target,model,AUC_mean,AUC_std,Accuracy_mean,Accuracy_std,MAE_mean,MAE_std,RMSE_mean,RMSE_std
+school,Word Identification,Majority class,0.5,0.0,0.5426,0.0226,,,,
+school,Word Identification,Logistic Regression,0.671,0.0566,0.64,0.0525,,,,
+school,Word Identification,Decision Tree,0.6535,0.0662,0.6357,0.0533,,,,
+school,Word Identification,Mean gain,0.5,0.0,0.5426,0.0226,7.1326,0.4784,8.8404,0.6097
+school,Word Identification,Linear Regression,0.6724,0.0638,0.6442,0.0518,6.5134,0.4826,8.2205,0.6064
+school,Word Identification,Decision Tree Regressor,0.6471,0.0363,0.6458,0.0299,6.7008,0.4312,8.459,0.5968
+school,Word Attack,Majority class,0.5,0.0,0.5892,0.0551,,,,
+school,Word Attack,Logistic Regression,0.6145,0.0392,0.6105,0.0634,,,,
+school,Word Attack,Decision Tree,0.556,0.0539,0.5583,0.0343,,,,
+school,Word Attack,Mean gain,0.5,0.0,0.5892,0.0551,5.9371,0.268,7.3845,0.3297
+school,Word Attack,Linear Regression,0.6223,0.0254,0.6035,0.0441,5.6989,0.2782,7.0326,0.3507
+school,Word Attack,Decision Tree Regressor,0.554,0.0361,0.585,0.0339,5.9856,0.1581,7.4072,0.2755
+student,Word Identification,Majority class,0.5,0.0,0.5426,0.0663,,,,
+student,Word Identification,Logistic Regression,0.667,0.0689,0.6374,0.0677,,,,
+student,Word Identification,Decision Tree,0.6359,0.0874,0.612,0.0705,,,,
+student,Word Identification,Mean gain,0.5,0.0,0.5426,0.0663,7.1602,0.4156,8.8714,0.5497
+student,Word Identification,Linear Regression,0.6735,0.072,0.6488,0.0711,6.6046,0.2352,8.2801,0.325
+student,Word Identification,Decision Tree Regressor,0.6456,0.0344,0.6615,0.0468,6.718,0.1526,8.4627,0.3384
+student,Word Attack,Majority class,0.5,0.0,0.5893,0.0405,,,,
+student,Word Attack,Logistic Regression,0.6336,0.0308,0.6162,0.046,,,,
+student,Word Attack,Decision Tree,0.5966,0.0516,0.6007,0.0682,,,,
+student,Word Attack,Mean gain,0.5,0.0,0.5893,0.0405,5.9405,0.5595,7.376,0.6957
+student,Word Attack,Linear Regression,0.632,0.0343,0.602,0.0409,5.7167,0.5533,7.039,0.6039
+student,Word Attack,Decision Tree Regressor,0.5943,0.0373,0.609,0.0262,5.8654,0.6593,7.3101,0.7278
