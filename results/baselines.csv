@@ -1,5 +1,0 @@
-target,model,AUC,AUC_std,Accuracy
-Word Identification,Logistic Regression,0.659,0.03,0.616
-Word Identification,Decision Tree (depth=5),0.629,0.02,0.612
-Word Attack,Logistic Regression,0.618,0.038,0.603
-Word Attack,Decision Tree (depth=6),0.556,0.033,0.573
