@@ -1,0 +1,7 @@
+,,Accuracy,Accuracy,PR-AUC,PR-AUC
+,,mean,std,mean,std
+Target,Model,,,,
+Word Attack,Random Forest,0.5863,0.0551,0.6686,0.0992
+Word Attack,XGBoost,0.6146,0.0699,0.6786,0.1024
+Word Identification,Random Forest,0.6375,0.0614,0.692,0.0929
+Word Identification,XGBoost,0.6177,0.0385,0.6835,0.103
