@@ -4,7 +4,7 @@ Reimplementation of the neural-network part of Shangguan et al., *Scalable Early
 
 **Scope (member 3):** implement the MLP / MaskMLP model, visualise model performance, and compare traditional ML with neural-network approaches.
 
-**Code:** `notebooks/Supriya_Neural_network_implementation.py` (experiments) and `notebooks/Supriya_Neural_network_report.py` (paper comparison and validation tables). `Neural_network_README.md` in the top folder covers setup and design decisions.
+**Code:** `notebooks/Supriya_Neural_network_implementation.py` (experiments) and `notebooks/Supriya_Neural_network_report.py` (paper comparison and validation tables). The neural-network sections of the repository's `README.md` cover setup and design decisions.
 
 **Results:** `results/neural_network/`. Short paths in this report such as `main/` and `report/` are relative to that folder.
 
@@ -245,7 +245,7 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 
 ## 7. Limitations
 
-- The authors' code is unavailable, so unreported choices (scaling, optimiser settings, epochs, checkpoint selection) are our own and documented in `Neural_network_README.md`. The conclusions apply to these choices, and a different implementation of the same method could behave differently.
+- The authors' code is unavailable, so unreported choices (scaling, optimiser settings, epochs, checkpoint selection) are our own and documented in the neural-network sections of `README.md`. The conclusions apply to these choices, and a different implementation of the same method could behave differently.
 - The default pretraining is transductive (unlabelled test inputs are used), as in the paper. Fully held-out evidence comes from the training-only runs (`results/neural_network/train`).
 - The loss ablation and feature importance are single-seed runs (seed 42), so differences of a few points there are within noise.
 - The complete-rows, SimSiam and contrastive settings use 3 seeds rather than 5.
