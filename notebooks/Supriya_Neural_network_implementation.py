@@ -6,7 +6,7 @@ school- and student-grouped cross-validation. Logistic regression and XGBoost ru
 controlled reference. Optional analyses: t-SNE, feature importance, the paper's Table 4 loss ablation,
 accuracy by progress quintile, and embedding-collapse diagnostics.
 
-Design decisions and their justification are documented in Neural_network_README.md and REPORT.md.
+Design decisions and their justification are documented in Neural_network_README.md and reports/Supriya_Neural_Network_REPORT.md.
 """
 from __future__ import annotations
 
@@ -929,11 +929,11 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description="ECRI neural network (MLP, MaskMLP) vs traditional ML experiments")
-    parser.add_argument("--dataset", default="ECRIDataSet.csv")
+    parser.add_argument("--dataset", default="data/ECRIDataSet.csv")
     parser.add_argument("--raw-dataset", default=None,
                         help="ECRIRawData.csv: pretrains MaskMLP on all 6,916 students (after checking the rebuilt records "
                              "match --dataset) and enables the accuracy-by-progress-quintile breakdown (paper Fig. 2)")
-    parser.add_argument("--output-dir", default="member3_outputs")
+    parser.add_argument("--output-dir", default="results/neural_network/main")
     parser.add_argument("--group", choices=["school", "student", "both"], default="both")
     parser.add_argument("--target", choices=[*TARGETS, "both"], default="both")
     parser.add_argument("--models", choices=list(MODEL_SETS), default="all",

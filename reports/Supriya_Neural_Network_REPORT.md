@@ -4,7 +4,9 @@ Reimplementation of the neural-network part of Shangguan et al., *Scalable Early
 
 **Scope (member 3):** implement the MLP / MaskMLP model, visualise model performance, and compare traditional ML with neural-network approaches.
 
-**Code:** `Neural_network_implementation.py` (experiments) and `Neural_network_report.py` (paper comparison and validation tables). Neural_network_README.md covers setup and design decisions.
+**Code:** `notebooks/Supriya_Neural_network_implementation.py` (experiments) and `notebooks/Supriya_Neural_network_report.py` (paper comparison and validation tables). `Neural_network_README.md` in the top folder covers setup and design decisions.
+
+**Results:** `results/neural_network/`. Short paths in this report such as `main/` and `report/` are relative to that folder.
 
 **Traditional models:** logistic regression and XGBoost are owned by members 1 and 2. They are included here only as a controlled reference, trained on exactly the same folds, rows and evaluation code as the neural models. They are not presented as member 3's implementation, and `--models neural` leaves them out.
 
@@ -12,7 +14,7 @@ Reimplementation of the neural-network part of Shangguan et al., *Scalable Early
 
 **Primary reproduction:** the paper's protocol as written. That means the cosine pretraining loss (Eq. 1), pretraining on all 6,916 unfiltered students, and evaluation on all labelled students. It is run with 5 seeds (42–46). Every other setting is a separate sensitivity or investigation run and is labelled as such.
 
-**Where the numbers come from:** every number in this report is computed from the 22 runs in `outputs/`, which were produced on Google Colab's CPU runtime (Section 8).
+**Where the numbers come from:** every number in this report is computed from the 22 runs in `results/neural_network/`, which were produced on Google Colab's CPU runtime (Section 8).
 
 ---
 
@@ -103,7 +105,7 @@ That quantity is balanced accuracy. It equals ROC-AUC computed from 0/1 predicti
   - Each outcome label is rebuilt from the raw scores: label = 1 when the Woodcock gain from t = 0 to t = 1 exceeds the mean gain of control-group (Tx = 0) students.
   - The rebuilt labels are compared with the released labels. All 946 labels match for word identification, and all 946 match for word attack.
   - This check is only reported. The models always train on the released labels, and the check does not affect pretraining.
-- **Where the results are kept.** Both results are saved in `outputs/main/raw_verification.json`, and every run's `config.json` records them too (all 22 runs used `--raw-dataset`). Both checks passed in every run.
+- **Where the results are kept.** Both results are saved in `results/neural_network/main/raw_verification.json`, and every run's `config.json` records them too (all 22 runs used `--raw-dataset`). Both checks passed in every run.
 - All runs now pretrain on the 6,916 unfiltered students (`--raw-dataset`). Fine-tuning and evaluation use the labelled students.
 
 **Evaluation rows.** The paper's text says students with missing values were excluded from fine-tuning and evaluation. Its Table 1, however, gives different results for the Zeros, Mean and Indicator MLPs, which is only possible if missing values were present. Both settings were run (3 seeds each for the complete-rows setting):
@@ -134,7 +136,7 @@ The loss reaches about 0 within 10 epochs. The encoder maps every student to alm
 **Following the review, the paper's cosine loss stays the primary reproduction.**
 - The contrastive loss is one of the paper's Table 4 losses.
 - The SimSiam-style loss is an **extension that is not in the paper**. It is excluded from the Table 4 ablation (`main/loss_ablation.csv` holds the paper's 11 losses only) and is labelled `loss_origin = extension` in every report table.
-- Both are reported here as a separate investigation (`outputs/simsiam`, `outputs/contrastive`), not as a replacement:
+- Both are reported here as a separate investigation (`results/neural_network/simsiam`, `results/neural_network/contrastive`), not as a replacement:
 
 | Pretraining loss | Spread after 100 epochs | Collapsed | MaskMLP accuracy (seeds 42–44) | MaskMLP − MLP Zeros |
 |---|---|---|---|---|
@@ -153,7 +155,7 @@ The loss reaches about 0 within 10 epochs. The encoder maps every student to alm
 
 ### 3.5 Report script robustness (Issue B)
 
-**The problem.** `Neural_network_report.py` assumed every run contained all 6 models, both splits and both targets. On a partial run (neural models only, one target) it failed with `KeyError: "['LogisticRegression', 'XGBoost'] not in index"`.
+**The problem.** `Supriya_Neural_network_report.py` assumed every run contained all 6 models, both splits and both targets. On a partial run (neural models only, one target) it failed with `KeyError: "['LogisticRegression', 'XGBoost'] not in index"`.
 
 **The fix.** It now reads each run's `config.json` and builds every table from the models, splits, targets and seeds that are actually present:
 - Tables that cannot be built are skipped with a note.
@@ -184,7 +186,7 @@ Figures: `report/paper_vs_ours_all.png` and `report/paper_vs_ours_intervention.p
 
 **Likely reasons for the neural gap.** None can be confirmed without the authors' code.
 
-1. **Checkpoint selection.** The paper does not describe a validation set. In an earlier diagnostic run (not part of `outputs/`), picking each MLP's best epoch on the test fold lifted our MLP's accuracy from 0.601 to 0.659, close to the paper's values. That would only inflate the neural models, because the traditional models have no epochs to pick. Our early stopping uses a separate grouped validation split, so no test labels are used for model selection. Test students' unlabelled inputs are still seen during pretraining in the default, transductive setting (Section 3.2).
+1. **Checkpoint selection.** The paper does not describe a validation set. In an earlier diagnostic run (not part of `results/neural_network/`), picking each MLP's best epoch on the test fold lifted our MLP's accuracy from 0.601 to 0.659, close to the paper's values. That would only inflate the neural models, because the traditional models have no epochs to pick. Our early stopping uses a separate grouped validation split, so no test labels are used for model selection. Test students' unlabelled inputs are still seen during pretraining in the default, transductive setting (Section 3.2).
 2. **Small labelled set.** Only 946 students per target have end-of-year scores. That leaves about 450–600 training students per fold, and a plain MLP underfits at this size.
 3. **Pretraining gives no benefit in our setup.** Cosine pretraining collapsed (Section 3.4), and the collapse-resistant losses did not help either, so in our implementation pretraining adds nothing over a plain MLP.
 4. **Unreported training details.** Input scaling, learning rate, batch size and number of epochs are not given in the paper.
@@ -242,8 +244,8 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 
 ## 7. Limitations
 
-- The authors' code is unavailable, so unreported choices (scaling, optimiser settings, epochs, checkpoint selection) are our own and documented in Neural_network_README.md. The conclusions apply to these choices, and a different implementation of the same method could behave differently.
-- The default pretraining is transductive (unlabelled test inputs are used), as in the paper. Fully held-out evidence comes from the training-only runs (`outputs/train`).
+- The authors' code is unavailable, so unreported choices (scaling, optimiser settings, epochs, checkpoint selection) are our own and documented in `Neural_network_README.md`. The conclusions apply to these choices, and a different implementation of the same method could behave differently.
+- The default pretraining is transductive (unlabelled test inputs are used), as in the paper. Fully held-out evidence comes from the training-only runs (`results/neural_network/train`).
 - The loss ablation and feature importance are single-seed runs (seed 42), so differences of a few points there are within noise.
 - The complete-rows, SimSiam and contrastive settings use 3 seeds rather than 5.
 - Results depend slightly on the software environment. An earlier local run of the same code with older package versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) gave accuracies within about 0.015 of those reported here and the same main conclusions. One finding differed: there, SimSiam-style pretraining put MaskMLP level with the best plain MLP (−0.0003), whereas here it does not help. The SimSiam result should therefore be treated as inconclusive.
@@ -254,44 +256,44 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 
 | Folder | Setting | Seeds |
 |---|---|---|
-| `outputs/main` | Primary run (paper protocol) + feature importance + loss ablation + all figures | 42 |
-| `outputs/seeds/s43…s46` | Primary run, extra seeds | 43–46 |
-| `outputs/train/s42…s46` | Pretraining on training groups only | 42–46 |
-| `outputs/complete/all-s4x`, `train-s4x` | Complete-feature rows only, scope all / train | 42–44 |
-| `outputs/simsiam/s4x` | Collapse investigation: SimSiam-style loss | 42–44 |
-| `outputs/contrastive/s4x` | Collapse investigation: contrastive loss | 42–44 |
-| `outputs/report` | Paper comparison, sensitivity, robustness and collapse tables | — |
+| `results/neural_network/main` | Primary run (paper protocol) + feature importance + loss ablation + all figures | 42 |
+| `results/neural_network/seeds/s43…s46` | Primary run, extra seeds | 43–46 |
+| `results/neural_network/train/s42…s46` | Pretraining on training groups only | 42–46 |
+| `results/neural_network/complete/all-s4x`, `train-s4x` | Complete-feature rows only, scope all / train | 42–44 |
+| `results/neural_network/simsiam/s4x` | Collapse investigation: SimSiam-style loss | 42–44 |
+| `results/neural_network/contrastive/s4x` | Collapse investigation: contrastive loss | 42–44 |
+| `results/neural_network/report` | Paper comparison, sensitivity, robustness and collapse tables | — |
 
 **Preserved evidence.** Every run folder keeps `config.json`, `results.csv`, `significance.csv`, `pretrain_log.csv` and `progress_breakdown.csv`. Also kept:
-- `outputs/report/`, the consolidated tables
-- `outputs/main/raw_verification.json`
+- `results/neural_network/report/`, the consolidated tables
+- `results/neural_network/main/raw_verification.json`
 - the figures
 
-The per-student `predictions.csv` and `folds.csv` files and the per-run figure copies outside `outputs/main` are only in the `results.zip` downloaded from Colab.
+The per-student `predictions.csv` and `folds.csv` files and the per-run figure copies outside `main/` are only in the `results.zip` downloaded from Colab.
 
 **Environment.** The committed results were produced on Google Colab's CPU runtime with Colab's preinstalled package versions. Elsewhere, install the dependencies with `pip install -r requirements.txt` (minimum versions); other library versions can shift accuracies by up to about 0.015 (Section 7).
 
-Run on Colab, or in any Python environment with `requirements.txt` installed. Put both CSVs next to the scripts. Every command below also takes `--raw-dataset ECRIRawData.csv` so that pretraining uses the unfiltered pool; it is written out in full in the first command only.
+Run on Colab, or in any Python environment with `requirements.txt` installed. Put both CSVs in `data/` and run the commands from the repository's top folder. Every command below also takes `--raw-dataset data/ECRIRawData.csv` so that pretraining uses the unfiltered pool; it is written out in full in the first command only.
 
 ```bash
 # Complete experiment: primary run + feature importance + loss ablation
-python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/main --importance --loss-ablation
+python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/main --importance --loss-ablation
 
 # Extra seeds (repeat for 44, 45, 46)
-python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/seeds/s43 --seed 43 --no-tsne
+python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/seeds/s43 --seed 43 --no-tsne
 
 # Training-only pretraining (repeat for seeds 42-46)
-python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/train/s42 --pretrain-scope train --seed 42 --no-tsne
+python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/train/s42 --pretrain-scope train --seed 42 --no-tsne
 
 # Complete-feature rows (add --pretrain-scope train for the train-s4x folders)
-python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/complete/all-s42 --eval-rows complete --seed 42 --no-tsne
+python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/complete/all-s42 --eval-rows complete --seed 42 --no-tsne
 
 # Collapse investigation (repeat for seeds 42-44)
-python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/simsiam/s42 --pretrain-loss simsiam --seed 42 --no-tsne
-python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/contrastive/s42 --pretrain-loss contrastive --seed 42 --no-tsne
+python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/simsiam/s42 --pretrain-loss simsiam --seed 42 --no-tsne
+python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/contrastive/s42 --pretrain-loss contrastive --seed 42 --no-tsne
 
 # Paper comparison and validation tables (works on any subset of the runs above)
-python Neural_network_report.py --outputs outputs
+python notebooks/Supriya_Neural_network_report.py --outputs results/neural_network
 ```
 
 On Windows, keep the project folder path short. Paths longer than 260 characters make figure saving fail.

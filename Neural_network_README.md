@@ -1,20 +1,23 @@
 # Member 3: MLP / MaskMLP reproduction on ECRI
 
-Reproduction of the neural-network part of Shangguan et al., *Scalable Early Childhood Reading Performance Prediction* (NeurIPS 2024 Datasets & Benchmarks). It implements the MLP and MaskMLP models, visualises their performance, and compares them with traditional ML. Results and discussion are in [REPORT.md](REPORT.md).
+Reproduction of the neural-network part of Shangguan et al., *Scalable Early Childhood Reading Performance Prediction* (NeurIPS 2024 Datasets & Benchmarks). It implements the MLP and MaskMLP models, visualises their performance, and compares them with traditional ML. Results and discussion are in [reports/Supriya_Neural_Network_REPORT.md](reports/Supriya_Neural_Network_REPORT.md).
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `Neural_network_implementation.py` | Experiments: models, cross-validation, analyses, figures |
-| `Neural_network_report.py` | Paper comparison, sensitivity, robustness and collapse tables. It imports constants and plotting helpers from `Neural_network_implementation.py`. |
-| `REPORT.md` | Results, review issues and conclusions |
+| `notebooks/Supriya_Neural_network_implementation.py` | Experiments: models, cross-validation, analyses, figures |
+| `notebooks/Supriya_Neural_network_report.py` | Paper comparison, sensitivity, robustness and collapse tables. It imports constants and plotting helpers from `Supriya_Neural_network_implementation.py`, so keep both scripts in the same folder. |
+| `notebooks/Supriya_Neural_Network.ipynb` | The Colab notebook the reported runs were made with |
+| `reports/Supriya_Neural_Network_REPORT.md` | Results, review issues and conclusions |
 | `requirements.txt` | Python dependencies (minimum versions) |
-| `outputs/` | The experimental evidence behind REPORT.md (see below) |
+| `results/neural_network/` | The experimental evidence behind the report (see below) |
 
-## Experimental evidence (`outputs/`)
+All commands and paths below are relative to the repository's top folder.
 
-The repository keeps the outputs behind every number in REPORT.md. For each of the 22 runs it keeps:
+## Experimental evidence (`results/neural_network/`)
+
+The repository keeps the outputs behind every number in the report. For each of the 22 runs it keeps:
 
 | File | Contents |
 |---|---|
@@ -25,9 +28,9 @@ The repository keeps the outputs behind every number in REPORT.md. For each of t
 | `progress_breakdown.csv` | Accuracy by progress quintile |
 
 **Also kept:**
-- `outputs/main/importance.csv`, `outputs/main/loss_ablation.csv` and `outputs/main/raw_verification.json`
-- `outputs/main/figures/`
-- `outputs/report/`, the consolidated tables and charts
+- `results/neural_network/main/importance.csv`, `results/neural_network/main/loss_ablation.csv` and `results/neural_network/main/raw_verification.json`
+- `results/neural_network/main/figures/`
+- `results/neural_network/report/`, the consolidated tables and charts
 
 **Left out of Git to keep the repository small (about 7 MB of outputs, 156 files, are tracked):**
 - the per-student `predictions.csv` and `folds.csv` files (about 50 MB)
@@ -39,11 +42,11 @@ They are kept in the `results.zip` downloaded from Colab and can be regenerated 
 
 The reported experiments were run on Google Colab's CPU runtime with Colab's preinstalled packages. Colab already has every dependency, so no install step was needed there.
 
-To run elsewhere, install the dependencies with `pip install -r requirements.txt`. It sets minimum versions only. Different library versions run the same code but can shift accuracies slightly: an earlier local run with older versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) differed by up to about 0.015 (REPORT.md, Section 7).
+To run elsewhere, install the dependencies with `pip install -r requirements.txt`. It sets minimum versions only. Different library versions run the same code but can shift accuracies slightly: an earlier local run with older versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) differed by up to about 0.015 (report, Section 7).
 
 ## Data
 
-The data is not included. Download `ECRIDataSet.csv` and `ECRIRawData.csv` from the authors' repository, [ecri-data/ECRI-Dataset](https://github.com/ecri-data/ECRI-Dataset), and place them next to the scripts.
+The data is not included. Download `ECRIDataSet.csv` and `ECRIRawData.csv` from the authors' repository, [ecri-data/ECRI-Dataset](https://github.com/ecri-data/ECRI-Dataset), and place them in `data/`. Git ignores CSV files there.
 
 ## What is implemented
 
@@ -93,15 +96,14 @@ These choices are not specified in the paper, or the paper is ambiguous about th
 pip install -r requirements.txt   # not needed on Colab
 
 # Complete experiment: primary reproduction + feature importance + loss ablation
-python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/main --importance --loss-ablation
+python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/main --importance --loss-ablation
 
-# Quick check (reduced epochs, one split and target)
-python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/smoke --models neural --group school --target RMwidRS_target --epochs 5 --pretrain-epochs 5 --no-tsne
+# Quick check (reduced epochs, one split and target); delete results/neural_network/smoke afterwards
+python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/smoke --models neural --group school --target RMwidRS_target --epochs 5 --pretrain-epochs 5 --no-tsne
 
 # Comparison tables (works on any subset of runs)
-python Neural_network_report.py --outputs outputs
+python notebooks/Supriya_Neural_network_report.py --outputs results/neural_network
 ```
 
-The commands for the seed, scope, evaluation-row and collapse-investigation runs are listed in REPORT.md, Section 8. Run `python Neural_network_implementation.py --help` for all options.
-
+The commands for the seed, scope, evaluation-row and collapse-investigation runs are listed in the report, Section 8. Run `python notebooks/Supriya_Neural_network_implementation.py --help` for all options.
 On Windows, keep the folder path short, because paths over 260 characters make figure saving fail.

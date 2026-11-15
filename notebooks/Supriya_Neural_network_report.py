@@ -1,4 +1,4 @@
-"""Paper comparison, robustness and validation tables for Neural_network_implementation.py outputs.
+"""Paper comparison, robustness and validation tables for Supriya_Neural_network_implementation.py outputs.
 
 Scans --outputs for run folders (any folder with results.csv) and writes to <outputs>/report/:
 
@@ -14,7 +14,7 @@ Scans --outputs for run folders (any folder with results.csv) and writes to <out
 Every table marks each pretraining loss as "paper" or "extension" (e.g. simsiam, which is not in
 the paper). The primary Table 1 comparison only ever uses a paper loss.
 
-Each run's setting is read from the config.json that Neural_network_implementation.py writes. Partial runs
+Each run's setting is read from the config.json that Supriya_Neural_network_implementation.py writes. Partial runs
 (fewer models, one target, one split, one seed) are handled: each table uses what is present
 and anything that cannot be computed is skipped with a note.
 """
@@ -85,7 +85,7 @@ def load_runs(root: Path) -> pd.DataFrame:
             continue
         config = run_config(results.parent)
         if config is None:
-            print(f"NOTE: skipping {results.parent} (no config.json; re-run it with the current Neural_network_implementation.py)")
+            print(f"NOTE: skipping {results.parent} (no config.json; re-run it with the current Supriya_Neural_network_implementation.py)")
             continue
         df = pd.read_csv(results)
         df = df[df["record_type"] == "fold"].assign(**config, run=results.parent.relative_to(root).as_posix())
@@ -271,8 +271,8 @@ def write(table: pd.DataFrame, path: Path) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Paper comparison and robustness report for Neural_network_implementation.py outputs")
-    parser.add_argument("--outputs", default="outputs")
+    parser = argparse.ArgumentParser(description="Paper comparison and robustness report for Supriya_Neural_network_implementation.py outputs")
+    parser.add_argument("--outputs", default="results/neural_network")
     parser.add_argument("--primary", default="cosine,all,all",
                         help="setting compared with Table 1: pretrain_loss,pretrain_scope,eval_rows")
     args = parser.parse_args()
