@@ -9,9 +9,12 @@ Reproduction of the neural-network part of Shangguan et al., *Scalable Early Chi
 | `notebooks/Supriya_Neural_network_implementation.py` | Experiments: models, cross-validation, analyses, figures |
 | `notebooks/Supriya_Neural_network_report.py` | Paper comparison, sensitivity, robustness and collapse tables. It imports constants and plotting helpers from `Supriya_Neural_network_implementation.py`, so keep both scripts in the same folder. |
 | `notebooks/Supriya_Neural_Network.ipynb` | The Colab notebook the reported runs were made with |
+| `notebooks/Supriya_kNN_extension.py` | Exploratory extension, not in the paper: k-nearest neighbours on the same folds. It imports from `Supriya_Neural_network_implementation.py` and changes nothing in it. |
+| `notebooks/Supriya_knn.ipynb` | The Colab notebook the kNN run was made with |
 | `reports/Supriya_Neural_Network_REPORT.md` | Results, review issues and conclusions |
 | `requirements.txt` | Python dependencies (minimum versions) |
 | `results/neural_network/` | The experimental evidence behind the report (see below) |
+| `results/knn_extension/` | kNN extension results: `results.csv`, `selected_k.csv` (k chosen per fold), `comparison.csv` and `knn_comparison.png` (kNN next to the six models of `results/neural_network/main`), `config.json` |
 
 All commands and paths below are relative to the repository's top folder.
 
@@ -60,6 +63,7 @@ The data is not included. Download `ECRIDataSet.csv` and `ECRIRawData.csv` from 
 | Accuracy by progress quintile | Fig. 2 | Needs `--raw-dataset` |
 | Pretraining loss ablation | Table 4 | The paper's 11 losses and combinations only |
 | Embedding-collapse diagnostics | Not in the paper | Spread recorded every epoch; warning on collapse |
+| k-nearest neighbours (`kNN_raw`, `kNN_MaskMLP_embedding`) | Not in the paper (exploratory extension) | Separate script; same folds as the seed-42 main run; k chosen on the validation split |
 
 Logistic regression and XGBoost run on exactly the same folds and rows as a controlled reference. Members 1 and 2 own the traditional-model implementations. Use `--models neural` to run the neural models only.
 
@@ -103,6 +107,12 @@ python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDat
 
 # Comparison tables (works on any subset of runs)
 python notebooks/Supriya_Neural_network_report.py --outputs results/neural_network
+
+# Extension: kNN on the same folds (needs results/neural_network/main for the comparison)
+python notebooks/Supriya_kNN_extension.py --raw-dataset data/ECRIRawData.csv
+
+# Rebuild only the kNN comparison table and figure from saved kNN results (no retraining)
+python notebooks/Supriya_kNN_extension.py --compare-only
 ```
 
 The commands for the seed, scope, evaluation-row and collapse-investigation runs are listed in the report, Section 8. Run `python notebooks/Supriya_Neural_network_implementation.py --help` for all options.
