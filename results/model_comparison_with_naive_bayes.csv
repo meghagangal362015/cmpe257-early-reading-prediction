@@ -1,0 +1,4 @@
+Model,Word Identification PR-AUC,Word Attack PR-AUC
+Random Forest,0.692,0.6686
+XGBoost,0.6835,0.6786
+Naive Bayes,0.6434,0.666

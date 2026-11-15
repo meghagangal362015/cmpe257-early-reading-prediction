@@ -1,0 +1,5 @@
+,Accuracy,Accuracy,PR-AUC,PR-AUC
+,mean,std,mean,std
+Target,,,,
+Word Attack,0.6146,0.0699,0.6786,0.1024
+Word Identification,0.6177,0.0385,0.6835,0.103

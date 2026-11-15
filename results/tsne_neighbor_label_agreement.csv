@@ -1,0 +1,4 @@
+colored by,same label among 10 nearest neighbors,expected by chance,difference
+Word Identification,0.552,0.504,0.048
+Word Attack,0.542,0.516,0.026
+Intervention group (Tx),0.955,0.505,0.45

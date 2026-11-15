@@ -11,3 +11,8 @@ outputs/*/*/figures/
 log_*.txt
 __pycache__/
 .ipynb_checkpoints/
+data/*.csv
+.venv/
+.ipynb_checkpoints/
+__pycache__/
+.DS_Store
