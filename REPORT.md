@@ -1,0 +1,297 @@
+# MaskMLP reimplementation and comparison with traditional ML on ECRI
+
+Reimplementation of the neural-network part of Shangguan et al., *Scalable Early Childhood Reading Performance Prediction* (NeurIPS 2024 Datasets & Benchmarks), and comparison with traditional ML on the released ECRI dataset.
+
+**Scope (member 3):** implement the MLP / MaskMLP model, visualise model performance, and compare traditional ML with neural-network approaches.
+
+**Code:** `Neural_network_implementation.py` (experiments) and `Neural_network_report.py` (paper comparison and validation tables). Neural_network_README.md covers setup and design decisions.
+
+**Traditional models:** logistic regression and XGBoost are owned by members 1 and 2. They are included here only as a controlled reference, trained on exactly the same folds, rows and evaluation code as the neural models. They are not presented as member 3's implementation, and `--models neural` leaves them out.
+
+**Data:** `ECRIDataSet.csv` (labelled records) and `ECRIRawData.csv` (unfiltered records, used for pretraining) from github.com/ecri-data/ECRI-Dataset. That repository contains the data and figures only, so the authors' implementation was not available to check against.
+
+**Primary reproduction:** the paper's protocol as written. That means the cosine pretraining loss (Eq. 1), pretraining on all 6,916 unfiltered students, and evaluation on all labelled students. It is run with 5 seeds (42–46). Every other setting is a separate sensitivity or investigation run and is labelled as such.
+
+**Where the numbers come from:** every number in this report is computed from the 22 runs in `outputs/`, which were produced on Google Colab's CPU runtime (Section 8).
+
+---
+
+## 1. Summary
+
+- **Every component in scope is implemented and runs end to end.** That covers the Table 1 models and evaluation, the Fig. 2–4 analyses, the Table 4 loss ablation and the Table 5 feature importance.
+- **MaskMLP's reported advantage was not reproduced under our documented training and evaluation choices.** In our runs, MaskMLP does not outperform the plain MLPs, and logistic regression and XGBoost score highest on all students.
+  - This holds under both pretraining scopes and both evaluation-row settings. Across the 10 single-seed runs of the two scopes (seeds 42–46 each), MaskMLP is below the best plain MLP in 9 (the tenth is +0.001) and below the best traditional model in all 10.
+  - In the intervention group the neural models close the gap: MaskMLP and MLP (Mean) (both 0.623) are level with XGBoost (0.620), but below logistic regression (0.639).
+  - The authors' training code is not available, so these choices are our own (Section 7).
+  - This result does not show that the published finding is invalid. It shows that the finding did not appear under our implementation of the described method.
+- **Our traditional models match the paper closely; our neural models do not.** Mean accuracy gap to Table 1, all students:
+
+  | Model family | Mean gap | Range |
+  |---|---|---|
+  | Traditional | −0.014 | −0.057 to +0.020 |
+  | Neural | −0.083 | −0.106 to −0.047 |
+
+- **Cosine pretraining caused embedding collapse in our implementation.**
+  - This happens in every run (16 of 16).
+  - Embedding spread drops about 94 % after the first epoch, from about 0.036 to about 0.0023.
+  - By epoch 100 it is near 0.00001.
+  - The investigation was kept separate from the primary results. Two collapse-resistant losses (the paper's contrastive loss and a SimSiam-style extension) keep the embeddings spread out, but neither improves MaskMLP's accuracy. Collapse therefore does not explain MaskMLP's shortfall in our runs.
+- **Pretraining on training groups only gives about the same result as pretraining on all students.** MaskMLP accuracy was 0.580 with all students and 0.577 with training groups only, over 5 seeds each; the difference is smaller than the seed-to-seed spread.
+  - The default follows the paper and is transductive: unlabelled test-student inputs are seen during pretraining.
+  - The training-only runs are therefore the stronger evidence about generalisation to unseen students.
+- **Several secondary findings do reproduce:**
+  - The start-of-year score on the same skill is the most important input for XGBoost on both tasks, and for MaskMLP on word identification.
+  - Accuracy is higher for students who improved than for those who regressed.
+  - The paper's AUC values are reproduced exactly as balanced accuracy.
+
+## 2. Status of responsibilities
+
+| Responsibility | Status |
+|---|---|
+| Standard MLP (Zeros / Mean / Indicator) | Complete |
+| MaskMLP architecture (3 layers × 64, −1 missing marker) | Complete |
+| Self-supervised pretraining (25 % masking, cosine loss, unfiltered 6,916 students) | Complete; collapse measured per epoch (Section 3.4) |
+| Supervised fine-tuning (BCE, early stopping on grouped validation split) | Complete |
+| Both reading tasks (word identification, word attack) | Complete |
+| Five-fold school / student grouped evaluation | Complete |
+| Missing-value baseline comparisons | Complete |
+| Evaluation metrics | Complete; AUC interpretation verified (Section 3.1) |
+| Performance visualisations | Complete (comparison, PR curves, pretraining loss and spread, t-SNE, progress quintiles, feature importance, loss ablation, paper vs ours) |
+| Comparison with traditional ML | Complete, over 5 seeds |
+| Report script robust to partial runs | Complete (Section 3.5) |
+| Raw-data reconstruction verified (`load_unfiltered`) | Complete; checked automatically on every run (Section 3.3) |
+| Paper comparison and conclusions | Complete (Sections 4 and 6) |
+| Robustness and final validation | Complete (Section 5) |
+
+## 3. Review issues and how they were addressed
+
+### 3.1 The paper's AUC definition (verified)
+
+The paper's text describes its AUC as the area under the precision–recall curve. Its numbers say otherwise. In all 10 Table 5 rows checked, the reported AUC equals (specificity + sensitivity) / 2 to four decimals; the largest difference is 0.00005, which is rounding (`report/auc_interpretation.csv`).
+
+That quantity is balanced accuracy. It equals ROC-AUC computed from 0/1 predictions. Table 1 is consistent with this too: in the word attack task, where classes are imbalanced, the paper's AUC is often well below its accuracy.
+
+**Handling in the code:** no metric is labelled "the paper's AUC". The script reports:
+- `balanced_accuracy`: the reading that matches the paper's tables. It is used when comparing against Table 1 AUC values.
+- `pr_auc`: area under the PR curve from probabilities, as the paper's text describes.
+- `roc_auc`: ROC-AUC from probabilities.
+
+### 3.2 Pretraining scope: all records or training groups only (verified)
+
+**What the paper says.** The paper states that it employs "all data samples during pre-training", and that no labels are used. Our default (`--pretrain-scope all`) follows that. This setting is transductive: MaskMLP sees the unlabelled inputs of validation and test students during pretraining. `--pretrain-scope train` removes every validation and test student of the fold from the pretraining pool.
+
+**What we ran.** Both settings were run with 5 seeds on the unfiltered pool. Values are means over splits, targets and folds, all students:
+
+| Pretraining scope | MaskMLP accuracy | Balanced accuracy | PR-AUC | MaskMLP − best plain MLP (accuracy) | MaskMLP − best traditional (accuracy) |
+|---|---|---|---|---|---|
+| all students (paper, transductive) | 0.580 ± 0.009 | 0.546 | 0.624 | −0.011 | −0.036 |
+| training groups only (strict) | 0.577 ± 0.008 | 0.544 | 0.624 | −0.014 | −0.039 |
+
+**Conclusion.** Including test students in pretraining gives MaskMLP no measurable advantage: the 0.003 difference is smaller than the seed-to-seed standard deviation. In our implementation the cosine encoder collapsed either way (Section 3.4), so it carries almost no information about any student, test students included. The paper's protocol is therefore kept as the primary setting, and the strict setting confirms that it does not inflate results here.
+
+### 3.3 Unfiltered data and incomplete labelled records
+
+**Unfiltered pretraining pool.**
+- `ECRIDataSet.csv` contains 6,803 students. `ECRIRawData.csv` contains 6,916, the number the paper reports.
+- We rebuilt the 16 input features from the raw file's start-of-year rows (`load_unfiltered()`).
+- **Feature verification (`verify_unfiltered()`).** This check compares inputs only.
+  - The raw file has exactly one start-of-year row for each of its 6,916 students, so no rows are merged or guessed.
+  - All 6,803 students in `ECRIDataSet.csv` are present.
+  - All 115,651 compared cells (16 features plus school ID for 6,803 students) are identical.
+  - If it fails, the script pretrains on `ECRIDataSet.csv` instead, or stops if `--pretrain-source raw` was given.
+- **Label verification (`verify_labels()`).** This is a separate check.
+  - Each outcome label is rebuilt from the raw scores: label = 1 when the Woodcock gain from t = 0 to t = 1 exceeds the mean gain of control-group (Tx = 0) students.
+  - The rebuilt labels are compared with the released labels. All 946 labels match for word identification, and all 946 match for word attack.
+  - This check is only reported. The models always train on the released labels, and the check does not affect pretraining.
+- **Where the results are kept.** Both results are saved in `outputs/main/raw_verification.json`, and every run's `config.json` records them too (all 22 runs used `--raw-dataset`). Both checks passed in every run.
+- All runs now pretrain on the 6,916 unfiltered students (`--raw-dataset`). Fine-tuning and evaluation use the labelled students.
+
+**Evaluation rows.** The paper's text says students with missing values were excluded from fine-tuning and evaluation. Its Table 1, however, gives different results for the Zeros, Mean and Indicator MLPs, which is only possible if missing values were present. Both settings were run (3 seeds each for the complete-rows setting):
+
+| Evaluation rows | Students per target | MaskMLP (scope all) | MaskMLP (scope train) | Best plain MLP | Logistic regression | XGBoost |
+|---|---|---|---|---|---|---|
+| all labelled (default) | 946 | 0.580 | 0.577 | 0.591 | 0.616 | 0.602 |
+| complete features only (paper text) | 706 | 0.582 | 0.584 | 0.600 | 0.623 | 0.630 |
+
+In both settings the traditional models are best and MaskMLP is the lowest-scoring model. With complete rows only, the Zeros and Mean MLPs become identical, as expected. That is further evidence that the paper's Table 1 used rows with missing values.
+
+### 3.4 MaskMLP embedding collapse (investigated separately)
+
+**How collapse is measured.** Spread is the mean per-dimension standard deviation of L2-normalised embeddings. It is recorded before pretraining and after every epoch (`pretrain_log.csv`, `report/collapse.csv`, right panel of `main/figures/pretraining_loss.png`).
+
+**What happened with the cosine loss (Eq. 1) in our implementation.** Cosine pretraining caused embedding collapse in all 16 cosine runs, across both scopes, both row settings and all seeds. This was under our training choices (Adam, learning rate 1e-3, batch size 64, 100 epochs, min-max inputs); the authors' settings may differ.
+
+| | Spread |
+|---|---|
+| Before pretraining | 0.033–0.038 |
+| After epoch 1 | 0.0020–0.0026 |
+| After epoch 100 | 0.000005–0.000011 |
+
+The loss reaches about 0 within 10 epochs. The encoder maps every student to almost the same direction.
+
+**Likely cause.** Eq. 1 only pulls a student's original and masked embeddings together. Nothing pushes different students apart, so a constant embedding minimises the loss. MSE collapsed in our runs as well, which fits that explanation.
+
+**Following the review, the paper's cosine loss stays the primary reproduction.**
+- The contrastive loss is one of the paper's Table 4 losses.
+- The SimSiam-style loss is an **extension that is not in the paper**. It is excluded from the Table 4 ablation (`main/loss_ablation.csv` holds the paper's 11 losses only) and is labelled `loss_origin = extension` in every report table.
+- Both are reported here as a separate investigation (`outputs/simsiam`, `outputs/contrastive`), not as a replacement:
+
+| Pretraining loss | Spread after 100 epochs | Collapsed | MaskMLP accuracy (seeds 42–44) | MaskMLP − MLP Zeros |
+|---|---|---|---|---|
+| cosine (paper Eq. 1) | 0.000005–0.000006 | yes | 0.582 | −0.005 |
+| contrastive (Eq. 1 + push away a random other student) | 0.023–0.026 | no | 0.571 | −0.017 |
+| SimSiam-style, extension (Eq. 1 + predictor + stop-gradient) | 0.070 | no | 0.581 | −0.007 |
+
+**Findings from the investigation:**
+- **Avoiding collapse does not improve MaskMLP in our runs.** Both alternative losses keep the embeddings spread out, but neither raises fine-tuned accuracy above the collapsed cosine encoder on the same seeds.
+  - Contrastive: 0.571, below cosine (0.582).
+  - SimSiam-style: 0.581, level with cosine. It is 0.009 below the best plain MLP and beats MLP Zeros in 23 of 60 paired units (8 ties, 29 losses).
+  - Both trail the traditional models by about 0.035–0.045 accuracy.
+- **Conclusion.** In our runs, the collapse does not explain MaskMLP's shortfall against the plain MLPs, the traditional models or the paper's numbers. One likely reading is that supervised fine-tuning largely overrides the pretrained encoder, so MaskMLP ends up close to a plain MLP whichever pretraining loss is used.
+
+**Diagnostics in the code.** The script warns whenever spread falls below 10 % of its starting value. `--pretrain-loss` accepts any loss or combination for further study.
+
+### 3.5 Report script robustness (Issue B)
+
+**The problem.** `Neural_network_report.py` assumed every run contained all 6 models, both splits and both targets. On a partial run (neural models only, one target) it failed with `KeyError: "['LogisticRegression', 'XGBoost'] not in index"`.
+
+**The fix.** It now reads each run's `config.json` and builds every table from the models, splits, targets and seeds that are actually present:
+- Tables that cannot be built are skipped with a note.
+- Ranks are computed among the models present.
+- Seed-robustness tables need at least 2 seeds.
+
+**Tests.** The report now runs without error on a neural-only single-target run, a traditional-only run, a single-seed run, and the full set of 22 runs.
+
+## 4. Comparison with the paper's Table 1
+
+Figures: `report/paper_vs_ours_all.png` and `report/paper_vs_ours_intervention.png`. Full table: `report/table1_comparison.csv`. Our values are means over 5 seeds × 5 folds in the primary setting.
+
+**Accuracy gap (ours − paper):**
+
+| Model family | All students | Intervention group |
+|---|---|---|
+| Traditional ML (logistic regression, XGBoost) | −0.014 (−0.057 to +0.020) | −0.022 (−0.065 to +0.019) |
+| Neural (MLPs, MaskMLP) | −0.083 (−0.106 to −0.047) | −0.130 (−0.184 to −0.088) |
+
+**MaskMLP's rank among the 6 models across 8 settings** (2 splits × 2 targets × 2 subsets):
+
+| Source | Ranks |
+|---|---|
+| Paper | 1st in 6 settings, 2nd in 2 |
+| Ours | 5th–6th in all 4 all-students settings; 2nd–5th in the 4 intervention-group settings |
+
+**The paper's own MaskMLP margin is small.** On all students, the paper reports MaskMLP within ±0.003 accuracy of the best plain MLP. Its advantage appears mainly in the intervention group (+0.016 to +0.035). In our runs MaskMLP is never clearly ahead of the best plain MLP: its best cells are word attack in the intervention group, +0.001 (school split) and +0.000 (student split).
+
+**Likely reasons for the neural gap.** None can be confirmed without the authors' code.
+
+1. **Checkpoint selection.** The paper does not describe a validation set. In an earlier diagnostic run (not part of `outputs/`), picking each MLP's best epoch on the test fold lifted our MLP's accuracy from 0.601 to 0.659, close to the paper's values. That would only inflate the neural models, because the traditional models have no epochs to pick. Our early stopping uses a separate grouped validation split, so no test labels are used for model selection. Test students' unlabelled inputs are still seen during pretraining in the default, transductive setting (Section 3.2).
+2. **Small labelled set.** Only 946 students per target have end-of-year scores. That leaves about 450–600 training students per fold, and a plain MLP underfits at this size.
+3. **Pretraining gives no benefit in our setup.** Cosine pretraining collapsed (Section 3.4), and the collapse-resistant losses did not help either, so in our implementation pretraining adds nothing over a plain MLP.
+4. **Unreported training details.** Input scaling, learning rate, batch size and number of epochs are not given in the paper.
+
+## 5. Robustness
+
+**Seeds.** The primary and strict-scope settings use 5 seeds (42–46). The complete-rows, SimSiam and contrastive settings use 3 seeds (`report/robustness.csv`).
+
+| Model | Accuracy, mean ± std over 5 seeds | Balanced accuracy | PR-AUC |
+|---|---|---|---|
+| Logistic regression | 0.616 ± 0.000 | 0.600 | 0.670 |
+| XGBoost | 0.602 ± 0.002 | 0.591 | 0.668 |
+| MLP (Mean) | 0.591 ± 0.008 | 0.567 | 0.658 |
+| MLP (Indicator) | 0.589 ± 0.007 | 0.561 | 0.641 |
+| MLP (Zeros) | 0.586 ± 0.007 | 0.557 | 0.651 |
+| MaskMLP (cosine) | 0.580 ± 0.009 | 0.546 | 0.624 |
+
+MaskMLP has the largest seed-to-seed spread of any model.
+
+**Paired outcomes.** Each of the 100 units is one seed × fold × split × target combination, and compares MaskMLP's accuracy with another model's (`report/maskmlp_wins.csv`). Primary setting:
+
+| MaskMLP vs | Wins / ties / losses | Mean accuracy difference |
+|---|---|---|
+| MLP (Zeros) | 35 / 24 / 41 | −0.006 |
+| MLP (Mean) | 37 / 17 / 46 | −0.011 |
+| MLP (Indicator) | 37 / 25 / 38 | −0.009 |
+| Logistic regression | 24 / 4 / 72 | −0.036 |
+| XGBoost | 35 / 3 / 62 | −0.021 |
+
+MaskMLP is level with or slightly below the plain MLPs. Logistic regression beats it in 72 of 100 units and XGBoost in 62.
+
+**Sensitivity.** Pretraining scope × evaluation rows × pretraining loss is covered in Sections 3.2–3.4 (`report/sensitivity.csv`). In every combination, the traditional models remain best.
+
+## 6. Conclusions
+
+**Agrees with the paper:**
+- The MLP depth and width, the masking scheme and the pipeline can be implemented as described, and all pieces run end to end.
+- The start-of-year score on the same skill is the most important input (feature importance, Fig. 4) for XGBoost on both tasks and for MaskMLP on word identification. For MaskMLP on word attack, no single feature stands out (largest drop 0.015). For XGBoost, dropping it costs 0.048 accuracy for word identification and 0.024 for word attack, the largest drop for each task.
+- Models are more accurate for students who made larger gains than for those who regressed (Fig. 2 pattern).
+- Our logistic regression and XGBoost results are close to Table 1.
+- The paper's reported AUC values are reproduced exactly as balanced accuracy.
+
+**Differs from the paper (under our implementation):**
+- MaskMLP does not outperform the plain MLPs. With the paper's loss it is slightly below them.
+- Neural models do not outperform traditional ML. On all students, logistic regression is best: 0.025 accuracy above the best neural model (MLP Mean) and 0.036 above MaskMLP. XGBoost is second. In the intervention group the best neural models are level with XGBoost but still below logistic regression.
+- Cosine pretraining caused embedding collapse in our implementation, and avoiding it did not improve MaskMLP. Our results are therefore not consistent with the paper's t-SNE reading of "well-defined clusters", although the paper's own training setup may have avoided the collapse.
+- The paper's AUC is balanced accuracy, not PR-AUC as its text states.
+- The paper's text and tables disagree on whether incomplete records were used in fine-tuning.
+
+**Overall:** MaskMLP's reported advantage was not reproduced under our documented training and evaluation choices on the released data. Under those choices, neither MaskMLP nor the plain MLPs outperformed traditional ML: logistic regression is the most accurate model on all students and in the intervention group.
+- **Which setting carries the most weight.** The result holds with the paper's transductive pretraining (test students' unlabelled inputs included). It also holds with training-only pretraining, which is the stronger test of generalisation to unseen students.
+- **What it does not show.** The authors' training implementation was unavailable for comparison, so this does not establish that the published finding is invalid.
+- **Where the gap is.** The paper's neural results are about 0.08 accuracy higher than ours, while its traditional baselines reproduce within about 0.015. That points to a difference in the neural training or evaluation procedure. Checkpoint selection is one plausible candidate, but we cannot confirm it.
+- In our implementation, avoiding the collapse (contrastive loss or the SimSiam-style extension) did not make MaskMLP better than the plain MLPs or traditional ML.
+
+## 7. Limitations
+
+- The authors' code is unavailable, so unreported choices (scaling, optimiser settings, epochs, checkpoint selection) are our own and documented in Neural_network_README.md. The conclusions apply to these choices, and a different implementation of the same method could behave differently.
+- The default pretraining is transductive (unlabelled test inputs are used), as in the paper. Fully held-out evidence comes from the training-only runs (`outputs/train`).
+- The loss ablation and feature importance are single-seed runs (seed 42), so differences of a few points there are within noise.
+- The complete-rows, SimSiam and contrastive settings use 3 seeds rather than 5.
+- Results depend slightly on the software environment. An earlier local run of the same code with older package versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) gave accuracies within about 0.015 of those reported here and the same main conclusions. One finding differed: there, SimSiam-style pretraining put MaskMLP level with the best plain MLP (−0.0003), whereas here it does not help. The SimSiam result should therefore be treated as inconclusive.
+- TabNet, GRAPE, VIME, SCARF and LightGBM are out of scope for this member.
+- Subgroup bias analysis (Table 2) is out of scope for this member.
+
+## 8. Output layout and reproducing
+
+| Folder | Setting | Seeds |
+|---|---|---|
+| `outputs/main` | Primary run (paper protocol) + feature importance + loss ablation + all figures | 42 |
+| `outputs/seeds/s43…s46` | Primary run, extra seeds | 43–46 |
+| `outputs/train/s42…s46` | Pretraining on training groups only | 42–46 |
+| `outputs/complete/all-s4x`, `train-s4x` | Complete-feature rows only, scope all / train | 42–44 |
+| `outputs/simsiam/s4x` | Collapse investigation: SimSiam-style loss | 42–44 |
+| `outputs/contrastive/s4x` | Collapse investigation: contrastive loss | 42–44 |
+| `outputs/report` | Paper comparison, sensitivity, robustness and collapse tables | — |
+
+**Preserved evidence.** Every run folder keeps `config.json`, `results.csv`, `significance.csv`, `pretrain_log.csv` and `progress_breakdown.csv`. Also kept:
+- `outputs/report/`, the consolidated tables
+- `outputs/main/raw_verification.json`
+- the figures
+
+The per-student `predictions.csv` and `folds.csv` files and the per-run figure copies outside `outputs/main` are only in the `results.zip` downloaded from Colab.
+
+**Environment.** The committed results were produced on Google Colab's CPU runtime with Colab's preinstalled package versions. Elsewhere, install the dependencies with `pip install -r requirements.txt` (minimum versions); other library versions can shift accuracies by up to about 0.015 (Section 7).
+
+Run on Colab, or in any Python environment with `requirements.txt` installed. Put both CSVs next to the scripts. Every command below also takes `--raw-dataset ECRIRawData.csv` so that pretraining uses the unfiltered pool; it is written out in full in the first command only.
+
+```bash
+# Complete experiment: primary run + feature importance + loss ablation
+python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/main --importance --loss-ablation
+
+# Extra seeds (repeat for 44, 45, 46)
+python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/seeds/s43 --seed 43 --no-tsne
+
+# Training-only pretraining (repeat for seeds 42-46)
+python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/train/s42 --pretrain-scope train --seed 42 --no-tsne
+
+# Complete-feature rows (add --pretrain-scope train for the train-s4x folders)
+python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/complete/all-s42 --eval-rows complete --seed 42 --no-tsne
+
+# Collapse investigation (repeat for seeds 42-44)
+python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/simsiam/s42 --pretrain-loss simsiam --seed 42 --no-tsne
+python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/contrastive/s42 --pretrain-loss contrastive --seed 42 --no-tsne
+
+# Paper comparison and validation tables (works on any subset of the runs above)
+python Neural_network_report.py --outputs outputs
+```
+
+On Windows, keep the project folder path short. Paths longer than 260 characters make figure saving fail.

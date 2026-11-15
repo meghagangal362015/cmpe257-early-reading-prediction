@@ -6,7 +6,7 @@ school- and student-grouped cross-validation. Logistic regression and XGBoost ru
 controlled reference. Optional analyses: t-SNE, feature importance, the paper's Table 4 loss ablation,
 accuracy by progress quintile, and embedding-collapse diagnostics.
 
-Design decisions and their justification are documented in README.md and REPORT.md.
+Design decisions and their justification are documented in Neural_network_README.md and REPORT.md.
 """
 from __future__ import annotations
 
