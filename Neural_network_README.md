@@ -10,7 +10,6 @@ Reproduction of the neural-network part of Shangguan et al., *Scalable Early Chi
 | `Neural_network_report.py` | Paper comparison, sensitivity, robustness and collapse tables. It imports constants and plotting helpers from `Neural_network_implementation.py`. |
 | `REPORT.md` | Results, review issues and conclusions |
 | `requirements.txt` | Python dependencies (minimum versions) |
-| `environment.yml`, `requirements-lock.txt` | Exact versions used for the reported experiments |
 | `outputs/` | The experimental evidence behind REPORT.md (see below) |
 
 ## Experimental evidence (`outputs/`)
@@ -27,25 +26,20 @@ The repository keeps the outputs behind every number in REPORT.md. For each of t
 
 **Also kept:**
 - `outputs/main/importance.csv`, `outputs/main/loss_ablation.csv` and `outputs/main/raw_verification.json`
-- `outputs/simsiam/ablation_s42.csv`, the extension run
 - `outputs/main/figures/`
 - `outputs/report/`, the consolidated tables and charts
 
-**Left out of Git to keep the repository small (about 8 MB of outputs, 138 files, are tracked):**
+**Left out of Git to keep the repository small (about 7 MB of outputs, 156 files, are tracked):**
 - the per-student `predictions.csv` and `folds.csv` files (about 50 MB)
 - the per-run figure copies in the seed and sensitivity folders (about 20 MB)
 
-They are kept in `member3_deliverables.zip` and can be regenerated with the commands below.
+They are kept in the `results.zip` downloaded from Colab and can be regenerated with the commands below.
 
 ## Reproducibility
 
-The reported experiments were run with Python 3.9.12 on CPU, using numpy 1.21.5, pandas 1.4.2, scipy 1.7.3, scikit-learn 1.0.2, matplotlib 3.5.1, torch 1.13.0 and xgboost 1.7.1. To recreate that environment:
+The reported experiments were run on Google Colab's CPU runtime with Colab's preinstalled packages. Colab already has every dependency, so no install step was needed there.
 
-```bash
-conda env create -f environment.yml
-```
-
-Alternatively, run `pip install -r requirements-lock.txt` in a Python 3.9 environment. `requirements.txt` only sets minimum versions; newer libraries should run the code, but may change results slightly.
+To run elsewhere, install the dependencies with `pip install -r requirements.txt`. It sets minimum versions only. Different library versions run the same code but can shift accuracies slightly: an earlier local run with older versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) differed by up to about 0.015 (REPORT.md, Section 7).
 
 ## Data
 
@@ -96,7 +90,7 @@ These choices are not specified in the paper, or the paper is ambiguous about th
 ## Running
 
 ```bash
-pip install -r requirements-lock.txt   # or requirements.txt for minimum versions
+pip install -r requirements.txt   # not needed on Colab
 
 # Complete experiment: primary reproduction + feature importance + loss ablation
 python Neural_network_implementation.py --dataset ECRIDataSet.csv --raw-dataset ECRIRawData.csv --output-dir outputs/main --importance --loss-ablation

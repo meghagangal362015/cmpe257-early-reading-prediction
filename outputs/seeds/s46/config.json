@@ -1,0 +1,59 @@
+{
+  "dataset": "ECRIDataSet.csv",
+  "raw_dataset": "ECRIRawData.csv",
+  "output_dir": "s46",
+  "group": "both",
+  "target": "both",
+  "models": "all",
+  "eval_rows": "all",
+  "hidden_size": 64,
+  "layers": 3,
+  "epochs": 100,
+  "pretrain_epochs": 100,
+  "batch_size": 64,
+  "learning_rate": 0.001,
+  "mask_rate": 0.25,
+  "patience": 15,
+  "pretrain_scope": "all",
+  "pretrain_source": "auto",
+  "pretrain_loss": "cosine",
+  "contrastive_margin": 0.0,
+  "triplet_margin": 1.0,
+  "collapse_ratio": 0.1,
+  "tsne": false,
+  "importance": false,
+  "importance_group": "school",
+  "loss_ablation": false,
+  "ablation_target": "RMwidRS_target",
+  "plots_only": false,
+  "skip_main": false,
+  "seed": 46,
+  "cpu": false,
+  "pretrain_records": "ECRIRawData.csv (unfiltered)",
+  "pretrain_pool_size": 6916,
+  "raw_verification": {
+    "dataset_students": 6803,
+    "rebuilt_students": 6916,
+    "shared_students": 6803,
+    "dataset_students_missing_from_raw": 0,
+    "cells_compared": 115651,
+    "mismatched_cells": 0,
+    "verified": true,
+    "labels": {
+      "label_definition": "gain(t=1 minus t=0) > mean gain of Tx=0 students",
+      "RMwidRS_target": {
+        "released_labels": 946,
+        "rebuilt_and_compared": 946,
+        "mismatched_labels": 0,
+        "control_mean_gain": 26.321083172147002
+      },
+      "RMwdaRS_target": {
+        "released_labels": 946,
+        "rebuilt_and_compared": 946,
+        "mismatched_labels": 0,
+        "control_mean_gain": 10.754352030947775
+      },
+      "verified": true
+    }
+  }
+}

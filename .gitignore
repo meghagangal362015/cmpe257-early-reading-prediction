@@ -1,3 +1,16 @@
+# Data: download from github.com/ecri-data/ECRI-Dataset
+ECRIDataSet.csv
+ECRIRawData.csv
+
+# Large per-run outputs (regenerable; kept in member3_deliverables.zip)
+outputs/**/predictions.csv
+outputs/**/folds.csv
+outputs/*/*/figures/
+
+*.zip
+log_*.txt
+__pycache__/
+.ipynb_checkpoints/
 data/*.csv
 .venv/
 .ipynb_checkpoints/
