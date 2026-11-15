@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from Neural_network_implementation import (COLORS, EXTENSION_LOSSES, INK, INK_2, SURFACE, TARGET_NAMES, TRADITIONAL, family,
+from Supriya_Neural_network_implementation import (COLORS, EXTENSION_LOSSES, INK, INK_2, SURFACE, TARGET_NAMES, TRADITIONAL, family,
                              new_figure, save)
 
 MODELS = ("LogisticRegression", "XGBoost", "MLP_zero", "MLP_mean", "MLP_indicator", "MaskMLP")
