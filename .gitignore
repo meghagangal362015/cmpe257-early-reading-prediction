@@ -2,10 +2,10 @@
 ECRIDataSet.csv
 ECRIRawData.csv
 
-# Large per-run outputs (regenerable; kept in member3_deliverables.zip)
-outputs/**/predictions.csv
-outputs/**/folds.csv
-outputs/*/*/figures/
+# Large per-run results (regenerable; kept in the results.zip downloaded from Colab)
+results/neural_network/**/predictions.csv
+results/neural_network/**/folds.csv
+results/neural_network/*/*/figures/
 
 *.zip
 log_*.txt
@@ -13,6 +13,4 @@ __pycache__/
 .ipynb_checkpoints/
 data/*.csv
 .venv/
-.ipynb_checkpoints/
-__pycache__/
 .DS_Store
