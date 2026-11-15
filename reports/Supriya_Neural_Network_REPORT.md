@@ -64,6 +64,7 @@ Reimplementation of the neural-network part of Shangguan et al., *Scalable Early
 | Raw-data reconstruction verified (`load_unfiltered`) | Complete; checked automatically on every run (Section 3.3) |
 | Paper comparison and conclusions | Complete (Sections 4 and 6) |
 | Robustness and final validation | Complete (Section 5) |
+| Extension: k-nearest neighbours (not in the paper) | Complete, exploratory, single seed (Section 9) |
 
 ## 3. Review issues and how they were addressed
 
@@ -249,6 +250,7 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 - The loss ablation and feature importance are single-seed runs (seed 42), so differences of a few points there are within noise.
 - The complete-rows, SimSiam and contrastive settings use 3 seeds rather than 5.
 - Results depend slightly on the software environment. An earlier local run of the same code with older package versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) gave accuracies within about 0.015 of those reported here and the same main conclusions. One finding differed: there, SimSiam-style pretraining put MaskMLP level with the best plain MLP (−0.0003), whereas here it does not help. The SimSiam result should therefore be treated as inconclusive.
+- The kNN extension (Section 9) is exploratory and single-seed (seed 42), so it is compared with the seed-42 main run only.
 - TabNet, GRAPE, VIME, SCARF and LightGBM are out of scope for this member.
 - Subgroup bias analysis (Table 2) is out of scope for this member.
 
@@ -263,6 +265,7 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 | `results/neural_network/simsiam/s4x` | Collapse investigation: SimSiam-style loss | 42–44 |
 | `results/neural_network/contrastive/s4x` | Collapse investigation: contrastive loss | 42–44 |
 | `results/neural_network/report` | Paper comparison, sensitivity, robustness and collapse tables | — |
+| `results/knn_extension` | Extension, not in the paper: kNN on the seed-42 folds, compared with `results/neural_network/main` (Section 9) | 42 |
 
 **Preserved evidence.** Every run folder keeps `config.json`, `results.csv`, `significance.csv`, `pretrain_log.csv` and `progress_breakdown.csv`. Also kept:
 - `results/neural_network/report/`, the consolidated tables
@@ -294,6 +297,37 @@ python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDat
 
 # Paper comparison and validation tables (works on any subset of the runs above)
 python notebooks/Supriya_Neural_network_report.py --outputs results/neural_network
+
+# Extension: kNN on the same folds as results/neural_network/main (Section 9)
+python notebooks/Supriya_kNN_extension.py --raw-dataset data/ECRIRawData.csv
 ```
 
 On Windows, keep the project folder path short. Paths longer than 260 characters make figure saving fail.
+
+## 9. Extension: k-nearest neighbours (exploratory, not in the paper)
+
+**Why.** kNN predicts from the most similar students, with no training beyond storing the data. It is a simple, very different model to compare against, and applied to MaskMLP's pretrained embeddings it tests directly how much information about similar students the self-supervised pretraining keeps.
+
+**Setup** (`notebooks/Supriya_kNN_extension.py`, run in `notebooks/Supriya_knn.ipynb`):
+- The same folds and test students as the seed-42 main run, and the same evaluation code.
+- `kNN_raw`: the 16 features, min-max scaled on the training fold, missing values filled with the training-fold mean plus one missing-value indicator per feature; Euclidean distance.
+- `kNN_MaskMLP_embedding`: the pretrained MaskMLP encoder (cosine loss, all 6,916 unfiltered students, same settings as the main run), before fine-tuning; cosine distance.
+- k is chosen per fold from 3 to 101 by accuracy on the grouped validation split, then the model is refit on training + validation students. Test labels are never used to choose k. The chosen k ranged from 7 to 75 for `kNN_raw` (median 21) and from 3 to 101 for the embedding variant (median 15).
+
+**Results** (`results/knn_extension/comparison.csv`, `knn_comparison.png`). Means over both splits and both targets, 5 folds each; the six models are from the seed-42 main run on the same folds:
+
+| Model | Accuracy, all students | Balanced accuracy | PR-AUC | Accuracy, intervention group |
+|---|---|---|---|---|
+| Logistic regression | 0.616 | 0.600 | 0.670 | 0.639 |
+| XGBoost | 0.600 | 0.590 | 0.670 | 0.623 |
+| MLP (Zeros) | 0.596 | 0.570 | 0.662 | 0.629 |
+| MLP (Mean) | 0.590 | 0.566 | 0.663 | 0.632 |
+| MaskMLP | 0.586 | 0.556 | 0.630 | 0.635 |
+| MLP (Indicator) | 0.583 | 0.554 | 0.637 | 0.626 |
+| **kNN_raw** | **0.567** | 0.548 | 0.623 | 0.612 |
+| **kNN_MaskMLP_embedding** | **0.524** | **0.502** | 0.572 | 0.538 |
+
+**Findings:**
+- **kNN on the raw features is the weakest of the models trained on those features.** On average it ranks 7th of 8 on all students, 0.049 below logistic regression and 0.016 below the lowest neural model. Its best cell is word identification in the student split (0.595), level with MaskMLP (0.594). With 16 features and only about 750 training students per fold, a student's nearest neighbours are not much more similar to them than students further away. kNN also leans towards predicting improvement (sensitivity 0.74, specificity 0.35).
+- **kNN on MaskMLP's pretrained embeddings is at chance** (balanced accuracy 0.502). This is independent evidence for the collapse in Section 3.4: in this run the encoder's embedding spread fell from about 0.03 to 0.000003–0.000007, so the embeddings no longer separate students and their neighbours carry no information about the outcome. MaskMLP still reaches 0.586 after fine-tuning, which supports the reading that fine-tuning, not pretraining, does the work.
+- **Conclusion.** kNN does not change the overall picture: logistic regression remains the best model, and the extension adds a direct check that the collapsed pretrained embeddings are uninformative.
