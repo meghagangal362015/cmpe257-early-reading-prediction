@@ -940,8 +940,8 @@ def main():
                         help="all: neural models plus logistic regression and XGBoost as a same-fold reference; "
                              "neural: MLPs and MaskMLP only")
     parser.add_argument("--eval-rows", choices=["complete", "all"], default="all",
-                        help="all: every labeled student, consistent with paper Table 1 where the Zeros/Mean/Indicator "
-                             "MLPs differ; complete: only students with all 16 features, as the paper's text states")
+                        help="all: every labeled student (946; the paper's rule, complete reading assessments, "
+                             "keeps 936); complete: only students with all 16 features (706), stricter than the paper")
     parser.add_argument("--hidden-size", type=int, default=64)
     parser.add_argument("--layers", type=int, default=3)
     parser.add_argument("--epochs", type=int, default=100)
