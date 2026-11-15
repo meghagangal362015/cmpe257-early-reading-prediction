@@ -92,14 +92,14 @@ That quantity is balanced accuracy. It equals ROC-AUC computed from 0/1 predicti
   - This check is only reported. The models always train on the released labels, and the check does not affect pretraining.
 - **Where the results are kept.** Both results are saved in `results/neural_network/main/raw_verification.json`, and every run's `config.json` records them too (all 22 runs used `--raw-dataset`). Both checks passed in every run.
 
-**Evaluation rows.** The paper's text says students with missing values were excluded from fine-tuning and evaluation. Its Table 1, however, gives different results for the Zeros, Mean and Indicator MLPs, which is only possible if missing values were present. Both settings were run (3 seeds each for the complete-rows setting):
+**Evaluation rows.** The paper (Sec. 3) excludes students with missing data from fine-tuning and evaluation, and it measures missingness over the eight reading assessments. Applying that rule leaves 936 labelled students per target, and 230 of them still miss at least one classroom-level feature (mostly the teacher knowledge score, `TKPctCrct`). That is why the paper's Zeros, Mean and Indicator MLPs differ in Table 1, so the paper's text and table are consistent. Our default uses all 946 labelled students, only 10 more than the paper's rule. The complete-rows setting (all 16 features observed, 706 students) is stricter than the paper and matches the team's paper-aligned experiments. Both settings were run (3 seeds each for the complete-rows setting):
 
 | Evaluation rows | Students per target | MaskMLP (scope all) | MaskMLP (scope train) | Best plain MLP | Logistic regression | XGBoost |
 |---|---|---|---|---|---|---|
 | all labelled (default) | 946 | 0.580 | 0.577 | 0.591 | 0.616 | 0.602 |
-| complete features only (paper text) | 706 | 0.582 | 0.584 | 0.600 | 0.623 | 0.630 |
+| all 16 features complete (stricter than the paper) | 706 | 0.582 | 0.584 | 0.600 | 0.623 | 0.630 |
 
-In both settings the traditional models are best and MaskMLP is the lowest-scoring model. With complete rows only, the Zeros and Mean MLPs become identical, as expected. That is further evidence that the paper's Table 1 used rows with missing values.
+In both settings the traditional models are best and MaskMLP is the lowest-scoring model. With complete rows only, the Zeros and Mean MLPs become identical, as expected, because nothing is left to fill. The 10-student difference between our default and the paper's rule is too small to explain the gap to the paper's results.
 
 ### 3.4 MaskMLP embedding collapse (investigated separately)
 
@@ -201,12 +201,12 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 - Models are more accurate for students who made larger gains than for those who regressed (Fig. 2 pattern).
 - Our logistic regression and XGBoost results are close to Table 1.
 - The paper's reported AUC values are reproduced exactly as balanced accuracy, although the paper's text calls the metric PR-AUC.
+- The paper's description of its evaluation rows checks out against the data: excluding students with missing reading assessments leaves 936 per target, and the remaining missing classroom features explain why its three missing-value MLPs differ.
 
 **Differs from the paper (under our implementation):**
 - MaskMLP does not outperform the plain MLPs. With the paper's loss it is slightly below them.
 - Neural models do not outperform traditional ML. On all students, logistic regression is best: 0.025 accuracy above the best neural model (MLP Mean) and 0.036 above MaskMLP. XGBoost is second. In the intervention group the best neural models are level with XGBoost but still below logistic regression.
 - Cosine pretraining caused embedding collapse in our implementation, and avoiding it did not improve MaskMLP. Our results are therefore not consistent with the paper's t-SNE reading of "well-defined clusters", although the paper's own training setup may have avoided the collapse.
-- The paper's text and tables disagree on whether incomplete records were used in fine-tuning.
 
 **Overall:** MaskMLP's reported advantage was not reproduced under our documented training and evaluation choices on the released data. Under those choices, neither MaskMLP nor the plain MLPs outperformed traditional ML: logistic regression is the most accurate model on all students and in the intervention group. The paper's neural results are about 0.08 accuracy higher than ours, while its traditional baselines reproduce within about 0.015. That points to a difference in the neural training or evaluation procedure. Checkpoint selection is one plausible candidate, but we cannot confirm it.
 
@@ -216,6 +216,7 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 - The default pretraining is transductive (unlabelled test inputs are used), as in the paper. Fully held-out evidence comes from the training-only runs (`results/neural_network/train`).
 - The loss ablation and feature importance are single-seed runs (seed 42), so differences of a few points there are within noise.
 - The complete-rows, SimSiam and contrastive settings use 3 seeds rather than 5.
+- The paper's exact evaluation rows (936 students per target) were not run as a separate setting; our default includes 10 more students.
 - Results depend slightly on the software environment. An earlier local run of the same code with older package versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) gave accuracies within about 0.015 of those reported here and the same main conclusions. One finding differed: there, SimSiam-style pretraining put MaskMLP level with the best plain MLP (−0.0003), whereas here it does not help. The SimSiam result should therefore be treated as inconclusive.
 - The kNN extension (Section 9) is exploratory and single-seed (seed 42), so it is compared with the seed-42 main run only.
 - TabNet, GRAPE, VIME, SCARF and LightGBM are out of scope for this member.

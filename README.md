@@ -198,9 +198,9 @@ These choices are not specified in the paper, or the paper is ambiguous about th
   - The outcome labels are also rebuilt from the raw scores and compared with the released labels (`verify_labels()`). This check is only reported and never changes the training data.
   - Both results are saved to `raw_verification.json`.
   - If the check fails, the script falls back to `ECRIDataSet.csv`, or stops if `--pretrain-source raw` was given.
-- **Evaluation rows.** The paper's text excludes incomplete students, but its Table 1 implies they were included.
-  - Default `--eval-rows all` uses every labelled student.
-  - `--eval-rows complete` follows the text.
+- **Evaluation rows.** The paper excludes students with missing reading assessments from fine-tuning and evaluation. That leaves 936 labelled students per target, 230 of whom still miss a classroom-level feature, which is why the paper's Zeros, Mean and Indicator MLPs differ.
+  - Default `--eval-rows all` uses every labelled student (946, only 10 more than the paper's rule).
+  - `--eval-rows complete` keeps only students with all 16 features (706). This is stricter than the paper and matches the paper-aligned experiments above.
 - **Training details.**
   - Inputs are min-max scaled, so −1 stays the only negative value.
   - A grouped 20 % validation split is used for early stopping (patience 15).
