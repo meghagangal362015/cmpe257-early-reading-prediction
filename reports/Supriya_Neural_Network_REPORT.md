@@ -91,7 +91,6 @@ That quantity is balanced accuracy. It equals ROC-AUC computed from 0/1 predicti
   - The rebuilt labels are compared with the released labels. All 946 labels match for word identification, and all 946 match for word attack.
   - This check is only reported. The models always train on the released labels, and the check does not affect pretraining.
 - **Where the results are kept.** Both results are saved in `results/neural_network/main/raw_verification.json`, and every run's `config.json` records them too (all 22 runs used `--raw-dataset`). Both checks passed in every run.
-- All runs now pretrain on the 6,916 unfiltered students (`--raw-dataset`). Fine-tuning and evaluation use the labelled students.
 
 **Evaluation rows.** The paper's text says students with missing values were excluded from fine-tuning and evaluation. Its Table 1, however, gives different results for the Zeros, Mean and Indicator MLPs, which is only possible if missing values were present. Both settings were run (3 seeds each for the complete-rows setting):
 
@@ -160,7 +159,7 @@ Figures: `report/paper_vs_ours_all.png` and `report/paper_vs_ours_intervention.p
 
 **Likely reasons for the neural gap.** None can be confirmed without the authors' code.
 
-1. **Checkpoint selection.** The paper does not describe a validation set. In an earlier diagnostic run (not part of `results/neural_network/`), picking each MLP's best epoch on the test fold lifted our MLP's accuracy from 0.601 to 0.659, close to the paper's values. That would only inflate the neural models, because the traditional models have no epochs to pick. Our early stopping uses a separate grouped validation split, so no test labels are used for model selection. Test students' unlabelled inputs are still seen during pretraining in the default, transductive setting (Section 3.2).
+1. **Checkpoint selection.** The paper does not describe a validation set. In an earlier diagnostic run (not part of `results/neural_network/`), picking each MLP's best epoch on the test fold lifted our MLP's accuracy from 0.601 to 0.659, close to the paper's values. That would only inflate the neural models, because the traditional models have no epochs to pick. Our early stopping uses a separate grouped validation split, so no test labels are used for model selection.
 2. **Small labelled set.** Only 946 students per target have end-of-year scores. That leaves about 450–600 training students per fold, and a plain MLP underfits at this size.
 3. **Pretraining gives no benefit in our setup.** Cosine pretraining collapsed (Section 3.4), and the collapse-resistant losses did not help either, so in our implementation pretraining adds nothing over a plain MLP.
 4. **Unreported training details.** Input scaling, learning rate, batch size and number of epochs are not given in the paper.
@@ -201,20 +200,15 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 - The start-of-year score on the same skill is the most important input (feature importance, Fig. 4) for XGBoost on both tasks and for MaskMLP on word identification. For MaskMLP on word attack, no single feature stands out (largest drop 0.015). For XGBoost, dropping it costs 0.048 accuracy for word identification and 0.024 for word attack, the largest drop for each task.
 - Models are more accurate for students who made larger gains than for those who regressed (Fig. 2 pattern).
 - Our logistic regression and XGBoost results are close to Table 1.
-- The paper's reported AUC values are reproduced exactly as balanced accuracy.
+- The paper's reported AUC values are reproduced exactly as balanced accuracy, although the paper's text calls the metric PR-AUC.
 
 **Differs from the paper (under our implementation):**
 - MaskMLP does not outperform the plain MLPs. With the paper's loss it is slightly below them.
 - Neural models do not outperform traditional ML. On all students, logistic regression is best: 0.025 accuracy above the best neural model (MLP Mean) and 0.036 above MaskMLP. XGBoost is second. In the intervention group the best neural models are level with XGBoost but still below logistic regression.
 - Cosine pretraining caused embedding collapse in our implementation, and avoiding it did not improve MaskMLP. Our results are therefore not consistent with the paper's t-SNE reading of "well-defined clusters", although the paper's own training setup may have avoided the collapse.
-- The paper's AUC is balanced accuracy, not PR-AUC as its text states.
 - The paper's text and tables disagree on whether incomplete records were used in fine-tuning.
 
-**Overall:** MaskMLP's reported advantage was not reproduced under our documented training and evaluation choices on the released data. Under those choices, neither MaskMLP nor the plain MLPs outperformed traditional ML: logistic regression is the most accurate model on all students and in the intervention group.
-- **Which setting carries the most weight.** The result holds with the paper's transductive pretraining (test students' unlabelled inputs included). It also holds with training-only pretraining, which is the stronger test of generalisation to unseen students.
-- **What it does not show.** The authors' training implementation was unavailable for comparison, so this does not establish that the published finding is invalid.
-- **Where the gap is.** The paper's neural results are about 0.08 accuracy higher than ours, while its traditional baselines reproduce within about 0.015. That points to a difference in the neural training or evaluation procedure. Checkpoint selection is one plausible candidate, but we cannot confirm it.
-- In our implementation, avoiding the collapse (contrastive loss or the SimSiam-style extension) did not make MaskMLP better than the plain MLPs or traditional ML.
+**Overall:** MaskMLP's reported advantage was not reproduced under our documented training and evaluation choices on the released data. Under those choices, neither MaskMLP nor the plain MLPs outperformed traditional ML: logistic regression is the most accurate model on all students and in the intervention group. The paper's neural results are about 0.08 accuracy higher than ours, while its traditional baselines reproduce within about 0.015. That points to a difference in the neural training or evaluation procedure. Checkpoint selection is one plausible candidate, but we cannot confirm it.
 
 ## 7. Limitations
 
@@ -283,4 +277,3 @@ python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDat
 **Findings:**
 - **kNN on the raw features is the weakest of the models trained on those features.** On average it ranks 7th of 8 on all students, 0.049 below logistic regression and 0.016 below the lowest neural model. Its best cell is word identification in the student split (0.595), level with MaskMLP (0.594). With 16 features and only about 750 training students per fold, a student's nearest neighbours are not much more similar to them than students further away. kNN also leans towards predicting improvement (sensitivity 0.74, specificity 0.35).
 - **kNN on MaskMLP's pretrained embeddings is at chance** (balanced accuracy 0.502). This is independent evidence for the collapse in Section 3.4: in this run the encoder's embedding spread fell from about 0.03 to 0.000003–0.000007, so the embeddings no longer separate students and their neighbours carry no information about the outcome. MaskMLP still reaches 0.586 after fine-tuning, which supports the reading that fine-tuning, not pretraining, does the work.
-- **Conclusion.** kNN does not change the overall picture: logistic regression remains the best model, and the extension adds a direct check that the collapsed pretrained embeddings are uninformative.

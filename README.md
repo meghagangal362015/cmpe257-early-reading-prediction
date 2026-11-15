@@ -179,7 +179,6 @@ Unlike the paper-aligned setup above, it uses all 946 labelled students per targ
 | Accuracy by progress quintile | Fig. 2 | Needs `--raw-dataset` |
 | Pretraining loss ablation | Table 4 | The paper's 11 losses and combinations only |
 | Embedding-collapse diagnostics | Not in the paper | Spread recorded every epoch; warning on collapse |
-| k-nearest neighbours (`kNN_raw`, `kNN_MaskMLP_embedding`) | Not in the paper (exploratory extension) | Separate script; same folds as the seed-42 main run; k chosen on the validation split |
 
 Logistic Regression and XGBoost run on exactly the same folds and rows as a controlled reference. Members 1 and 2 own the traditional-model implementations, so the reference results below can differ slightly from the Random Forest, XGBoost and baseline results above, which use their own settings. Use `--models neural` to run the neural models only.
 
@@ -207,7 +206,7 @@ These choices are not specified in the paper, or the paper is ambiguous about th
   - A grouped 20 % validation split is used for early stopping (patience 15).
   - Optimiser: Adam, learning rate 1e-3, batch size 64.
   - Pretraining and fine-tuning each run for up to 100 epochs.
-- **Embedding collapse.** The cosine loss only pulls positive pairs together, so the encoder can map every student to the same embedding. In our implementation, cosine pretraining caused embedding collapse in every run. The script records embedding spread every epoch and warns when it falls below 10 % of its initial value.
+- **Embedding collapse.** The cosine loss only pulls positive pairs together, so the encoder can map every student to the same embedding. The script records embedding spread every epoch and warns when it falls below 10 % of its initial value.
 - **Extension, not in the paper.** `--pretrain-loss simsiam` is Eq. 1 with a predictor and stop-gradient. It is used only to investigate the collapse: it is excluded from the Table 4 ablation and labelled `extension` in every report table.
 
 ### Neural Network Results
@@ -291,9 +290,9 @@ kNN worked but did not improve the results. Over both splits and both targets, `
 kNN results are available in:
 
 - `results/knn_extension/results.csv`
-- `results/knn_extension/selected_k.csv`
-- `results/knn_extension/comparison.csv`
-- `results/knn_extension/knn_comparison.png`
+- `results/knn_extension/selected_k.csv` (k chosen per fold)
+- `results/knn_extension/comparison.csv` and `results/knn_extension/knn_comparison.png` (kNN next to the six models of `results/neural_network/main`)
+- `results/knn_extension/config.json`
 
 ## Neural Network Files and Outputs
 
@@ -307,7 +306,7 @@ kNN results are available in:
 | `reports/Supriya_Neural_Network_REPORT.md` | Results, methodological checks and conclusions |
 | `requirements.txt` | Python dependencies (minimum versions) |
 | `results/neural_network/` | The experimental evidence behind the report (see below) |
-| `results/knn_extension/` | kNN extension results: `results.csv`, `selected_k.csv` (k chosen per fold), `comparison.csv` and `knn_comparison.png` (kNN next to the six models of `results/neural_network/main`), `config.json` |
+| `results/knn_extension/` | kNN extension results (see Extension: k-Nearest Neighbours) |
 
 The repository keeps the outputs behind every number in the report. For each of the 22 runs in `results/neural_network/` it keeps:
 
@@ -336,9 +335,7 @@ They are kept in the `results.zip` downloaded from Colab and can be regenerated 
 
 The data is not included. Download `ECRIDataSet.csv` and `ECRIRawData.csv` from the authors' repository, [ecri-data/ECRI-Dataset](https://github.com/ecri-data/ECRI-Dataset), and place them in `data/`. Git ignores CSV files there.
 
-The reported experiments were run on Google Colab's CPU runtime with Colab's preinstalled packages. Colab already has every dependency, so no install step was needed there.
-
-To run elsewhere, install the dependencies with `pip install -r requirements.txt`. It sets minimum versions only. Different library versions run the same code but can shift accuracies slightly: an earlier local run with older versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) differed by up to about 0.015 (report, Section 7).
+The reported experiments were run on Google Colab's CPU runtime, which has every dependency preinstalled. Elsewhere, install them with `pip install -r requirements.txt`, which sets minimum versions only. Different library versions run the same code but can shift accuracies slightly: an earlier local run with older versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) differed by up to about 0.015 (report, Section 7).
 
 All commands and paths are relative to the repository's top folder.
 
