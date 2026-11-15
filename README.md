@@ -163,13 +163,9 @@ Naive Bayes results are available in:
 
 ## Neural Network Models: MLP and MaskMLP
 
-This part reproduces the neural-network experiments of Shangguan et al., *Scalable Early Childhood Reading Performance Prediction* (NeurIPS 2024 Datasets & Benchmarks): a three-layer MLP with three missing-value strategies and the self-supervised MaskMLP. It visualises their performance and compares them with traditional machine-learning models. The full results, review issues and conclusions are in `reports/Supriya_Neural_Network_REPORT.md`.
+This part reproduces the neural-network experiments of Shangguan et al., *Scalable Early Childhood Reading Performance Prediction* (NeurIPS 2024 Datasets & Benchmarks): a three-layer MLP with three missing-value strategies and the self-supervised MaskMLP. It visualises their performance and compares them with traditional machine-learning models. The full results, methodological checks and conclusions are in `reports/Supriya_Neural_Network_REPORT.md`.
 
-The neural-network setup differs from the paper-aligned setup above in three ways:
-
-- It uses all 946 labelled students per target by default, because the paper's Table 1 gives different results for the Zeros, Mean and Indicator MLPs, which is only possible if students with missing values were included. The 706-complete-student setting is run as a sensitivity check.
-- It evaluates both school-grouped and student-grouped five-fold cross-validation, as in the paper.
-- MaskMLP is pretrained without labels on all 6,916 students, rebuilt from `ECRIRawData.csv`.
+Unlike the paper-aligned setup above, it uses all 946 labelled students per target (706 complete students as a sensitivity check), evaluates both school-grouped and student-grouped five-fold cross-validation, and pretrains MaskMLP without labels on all 6,916 students. The reasons are under Design Decisions below.
 
 ### What Is Implemented
 
@@ -308,7 +304,7 @@ kNN results are available in:
 | `notebooks/Supriya_Neural_Network.ipynb` | The Colab notebook the reported runs were made with |
 | `notebooks/Supriya_kNN_extension.py` | Exploratory extension, not in the paper: k-nearest neighbours on the same folds. It imports from `Supriya_Neural_network_implementation.py` and changes nothing in it. |
 | `notebooks/Supriya_knn.ipynb` | The Colab notebook the kNN run was made with |
-| `reports/Supriya_Neural_Network_REPORT.md` | Results, review issues and conclusions |
+| `reports/Supriya_Neural_Network_REPORT.md` | Results, methodological checks and conclusions |
 | `requirements.txt` | Python dependencies (minimum versions) |
 | `results/neural_network/` | The experimental evidence behind the report (see below) |
 | `results/knn_extension/` | kNN extension results: `results.csv`, `selected_k.csv` (k chosen per fold), `comparison.csv` and `knn_comparison.png` (kNN next to the six models of `results/neural_network/main`), `config.json` |

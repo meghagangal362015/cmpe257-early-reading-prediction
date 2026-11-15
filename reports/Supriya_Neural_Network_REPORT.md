@@ -14,7 +14,7 @@ Reimplementation of the neural-network part of Shangguan et al., *Scalable Early
 
 **Primary reproduction:** the paper's protocol as written. That means the cosine pretraining loss (Eq. 1), pretraining on all 6,916 unfiltered students, and evaluation on all labelled students. It is run with 5 seeds (42–46). Every other setting is a separate sensitivity or investigation run and is labelled as such.
 
-**Where the numbers come from:** every number in this report is computed from the 22 runs in `results/neural_network/`, which were produced on Google Colab's CPU runtime (Section 8).
+**Where the numbers come from:** every number in this report is computed from the 22 runs in `results/neural_network/`, which were produced on Google Colab's CPU runtime (setup in `README.md`).
 
 ---
 
@@ -46,27 +46,11 @@ Reimplementation of the neural-network part of Shangguan et al., *Scalable Early
   - Accuracy is higher for students who improved than for those who regressed.
   - The paper's AUC values are reproduced exactly as balanced accuracy.
 
-## 2. Status of responsibilities
+## 2. Scope implemented
 
-| Responsibility | Status |
-|---|---|
-| Standard MLP (Zeros / Mean / Indicator) | Complete |
-| MaskMLP architecture (3 layers × 64, −1 missing marker) | Complete |
-| Self-supervised pretraining (25 % masking, cosine loss, unfiltered 6,916 students) | Complete; collapse measured per epoch (Section 3.4) |
-| Supervised fine-tuning (BCE, early stopping on grouped validation split) | Complete |
-| Both reading tasks (word identification, word attack) | Complete |
-| Five-fold school / student grouped evaluation | Complete |
-| Missing-value baseline comparisons | Complete |
-| Evaluation metrics | Complete; AUC interpretation verified (Section 3.1) |
-| Performance visualisations | Complete (comparison, PR curves, pretraining loss and spread, t-SNE, progress quintiles, feature importance, loss ablation, paper vs ours) |
-| Comparison with traditional ML | Complete, over 5 seeds |
-| Report script robust to partial runs | Complete (Section 3.5) |
-| Raw-data reconstruction verified (`load_unfiltered`) | Complete; checked automatically on every run (Section 3.3) |
-| Paper comparison and conclusions | Complete (Sections 4 and 6) |
-| Robustness and final validation | Complete (Section 5) |
-| Extension: k-nearest neighbours (not in the paper) | Complete, exploratory, single seed (Section 9) |
+Every component in the "What Is Implemented" table of `README.md` is complete and runs end to end. The performance figures (comparison, PR curves, pretraining loss and spread, t-SNE, progress quintiles, feature importance, loss ablation, paper vs ours) are in `main/figures/` and `report/`. The kNN extension is in Section 9.
 
-## 3. Review issues and how they were addressed
+## 3. Methodological checks
 
 ### 3.1 The paper's AUC definition (verified)
 
@@ -134,7 +118,7 @@ The loss reaches about 0 within 10 epochs. The encoder maps every student to alm
 
 **Likely cause.** Eq. 1 only pulls a student's original and masked embeddings together. Nothing pushes different students apart, so a constant embedding minimises the loss. MSE collapsed in our runs as well, which fits that explanation.
 
-**Following the review, the paper's cosine loss stays the primary reproduction.**
+**The paper's cosine loss stays the primary reproduction.**
 - The contrastive loss is one of the paper's Table 4 losses.
 - The SimSiam-style loss is an **extension that is not in the paper**. It is excluded from the Table 4 ablation (`main/loss_ablation.csv` holds the paper's 11 losses only) and is labelled `loss_origin = extension` in every report table.
 - Both are reported here as a separate investigation (`results/neural_network/simsiam`, `results/neural_network/contrastive`), not as a replacement:
@@ -153,17 +137,6 @@ The loss reaches about 0 within 10 epochs. The encoder maps every student to alm
 - **Conclusion.** In our runs, the collapse does not explain MaskMLP's shortfall against the plain MLPs, the traditional models or the paper's numbers. One likely reading is that supervised fine-tuning largely overrides the pretrained encoder, so MaskMLP ends up close to a plain MLP whichever pretraining loss is used.
 
 **Diagnostics in the code.** The script warns whenever spread falls below 10 % of its starting value. `--pretrain-loss` accepts any loss or combination for further study.
-
-### 3.5 Report script robustness (Issue B)
-
-**The problem.** `Supriya_Neural_network_report.py` assumed every run contained all 6 models, both splits and both targets. On a partial run (neural models only, one target) it failed with `KeyError: "['LogisticRegression', 'XGBoost'] not in index"`.
-
-**The fix.** It now reads each run's `config.json` and builds every table from the models, splits, targets and seeds that are actually present:
-- Tables that cannot be built are skipped with a note.
-- Ranks are computed among the models present.
-- Seed-robustness tables need at least 2 seeds.
-
-**Tests.** The report now runs without error on a neural-only single-target run, a traditional-only run, a single-seed run, and the full set of 22 runs.
 
 ## 4. Comparison with the paper's Table 1
 
@@ -267,21 +240,9 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 | `results/neural_network/report` | Paper comparison, sensitivity, robustness and collapse tables | — |
 | `results/knn_extension` | Extension, not in the paper: kNN on the seed-42 folds, compared with `results/neural_network/main` (Section 9) | 42 |
 
-**Preserved evidence.** Every run folder keeps `config.json`, `results.csv`, `significance.csv`, `pretrain_log.csv` and `progress_breakdown.csv`. Also kept:
-- `results/neural_network/report/`, the consolidated tables
-- `results/neural_network/main/raw_verification.json`
-- the figures
-
-The per-student `predictions.csv` and `folds.csv` files and the per-run figure copies outside `main/` are only in the `results.zip` downloaded from Colab.
-
-**Environment.** The committed results were produced on Google Colab's CPU runtime with Colab's preinstalled package versions. Elsewhere, install the dependencies with `pip install -r requirements.txt` (minimum versions); other library versions can shift accuracies by up to about 0.015 (Section 7).
-
-Run on Colab, or in any Python environment with `requirements.txt` installed. Put both CSVs in `data/` and run the commands from the repository's top folder. Every command below also takes `--raw-dataset data/ECRIRawData.csv` so that pretraining uses the unfiltered pool; it is written out in full in the first command only.
+The files kept in each folder, the data, the environment and the commands for the main run, the report tables and kNN are in the "Neural Network Files and Outputs" and "Running the Neural Network Experiments" sections of `README.md`. The commands below reproduce the additional runs:
 
 ```bash
-# Complete experiment: primary run + feature importance + loss ablation
-python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/main --importance --loss-ablation
-
 # Extra seeds (repeat for 44, 45, 46)
 python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/seeds/s43 --seed 43 --no-tsne
 
@@ -294,15 +255,7 @@ python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDat
 # Collapse investigation (repeat for seeds 42-44)
 python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/simsiam/s42 --pretrain-loss simsiam --seed 42 --no-tsne
 python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDataSet.csv --raw-dataset data/ECRIRawData.csv --output-dir results/neural_network/contrastive/s42 --pretrain-loss contrastive --seed 42 --no-tsne
-
-# Paper comparison and validation tables (works on any subset of the runs above)
-python notebooks/Supriya_Neural_network_report.py --outputs results/neural_network
-
-# Extension: kNN on the same folds as results/neural_network/main (Section 9)
-python notebooks/Supriya_kNN_extension.py --raw-dataset data/ECRIRawData.csv
 ```
-
-On Windows, keep the project folder path short. Paths longer than 260 characters make figure saving fail.
 
 ## 9. Extension: k-nearest neighbours (exploratory, not in the paper)
 
