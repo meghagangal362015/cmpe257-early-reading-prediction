@@ -39,7 +39,7 @@ https://papers.neurips.cc/paper_files/paper/2024/hash/862170d83a17b7c2ef3c5a58e7
 
 ## Data Preprocessing
 
-Following the paper, the supervised experiments use 706 complete labeled students. The dataset contains no missing values for the selected 16 features and the two reading targets.
+The supervised experiments in this section use the 706 labelled students with all 16 features observed, so no missing values remain. This is stricter than the paper, which excludes only students with missing reading assessments (936 per target, some still missing classroom-level features). The neural-network section below uses the paper's rows.
 
 The 16 paper features include:
 
@@ -60,7 +60,7 @@ The paper-aligned experiments compare:
 - Random Forest
 - XGBoost
 - Multi-Layer Perceptron (MLP)
-- MaskMLP-inspired neural network
+- MaskMLP (reimplementation of the paper's self-supervised pretraining)
 
 Additional extension experiments include:
 
@@ -69,6 +69,7 @@ Additional extension experiments include:
 - XGBoost hyperparameter tuning
 - Feature-group ablation
 - Feature-importance analysis
+- k-nearest neighbours (raw features and MaskMLP embeddings)
 
 The Random Forest and XGBoost paper-aligned experiments use five-fold cross-validation grouped by school. Gaussian Naive Bayes was added as an extension model using the same evaluation setup.
 
@@ -85,6 +86,8 @@ The main evaluation metrics are:
 - Area under the Precision–Recall curve (PR-AUC)
 - Standard deviation across the five folds
 - Feature-importance analysis
+
+The paper's tables label a metric "AUC"; its values equal balanced accuracy, so the neural-network section uses balanced accuracy when comparing with the paper (see `reports/Supriya_Neural_Network_REPORT.md`, Section 3.1).
 
 The paper-aligned experiments do not use a fixed 70/15/15 train-validation-test split. Unlabeled students may be used for MaskMLP pretraining, while supervised models use labeled students only.
 
@@ -157,6 +160,7 @@ Naive Bayes results are available in:
 - Random Forest performed best for Word Identification.
 - XGBoost performed best for Word Attack.
 - Naive Bayes worked successfully but did not improve the results.
+- The neural networks (MLPs and MaskMLP) did not outperform the traditional models on the same folds, and MaskMLP's reported advantage over the plain MLPs was not reproduced.
 - Tree-based models were better suited to the relationships among the reading features.
 - Model performance varied across school-based folds.
 - The models should support educators and should not replace teacher or specialist judgment.
@@ -372,7 +376,7 @@ On Windows, keep the folder path short, because paths over 260 characters make f
 |---|---|
 | Anupama Singh | Baseline models using Linear Regression and Decision Tree |
 | Megha Gangal | Random Forest, XGBoost, Gaussian Naive Bayes, hyperparameter tuning, feature ablation, and feature-importance analysis |
-| Supriya Kavitha Venkatesan | MLP/MaskMLP-inspired model and comparison analysis |
+| Supriya Kavitha Venkatesan | MLP (Zeros, Mean, Indicator) and MaskMLP reimplementation: masked self-supervised pretraining on all 6,916 students with the cosine loss, then fine-tuning; school- and student-grouped evaluation on the paper's 936 students per target, compared with Logistic Regression and XGBoost on the same folds and with the paper's Table 1; progress-quintile, t-SNE, feature-importance and loss-ablation analyses; checks of the paper's AUC metric, pretraining scope, evaluation rows, embedding collapse and checkpoint selection; kNN extension |
 
 All team members will contribute to preprocessing, documentation, report writing, presentation preparation, and final review.
 
@@ -381,11 +385,13 @@ All team members will contribute to preprocessing, documentation, report writing
 ```text
 cmpe257-early-reading-prediction/
 │
-├── data/
+├── data/processed/        # derived datasets (raw ECRI CSVs are downloaded, not tracked)
 ├── notebooks/
 ├── src/
-├── models/
-├── results/
 ├── reports/
+├── results/
+│   ├── neural_network/
+│   └── knn_extension/
 ├── requirements.txt
 └── README.md
+```

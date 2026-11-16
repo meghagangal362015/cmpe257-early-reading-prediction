@@ -8,7 +8,7 @@ Reimplementation of the neural-network part of Shangguan et al., *Scalable Early
 
 **Results:** `results/neural_network/`. Short paths in this report such as `main/` and `report/` are relative to that folder.
 
-**Traditional models:** logistic regression and XGBoost are owned by members 1 and 2. They are included here only as a controlled reference, trained on exactly the same folds, rows and evaluation code as the neural models. They are not presented as member 3's implementation, and `--models neural` leaves them out.
+**Traditional models:** logistic regression and XGBoost are owned by members 1 and 2. They are included here only as a controlled reference, trained on exactly the same folds, rows and evaluation code as the neural models. They are not presented as member 3's implementation, and `--models neural` leaves them out. They handle missing values in the usual way for each model rather than with the −1 marker: logistic regression fills them with the training-fold mean and adds one missing-value flag per feature, and XGBoost uses its built-in handling of missing values. The paper assigns −1 to missing variables during training, possibly for every model; since our traditional results are within about 0.02 of Table 1, this has little effect.
 
 **Data:** `ECRIDataSet.csv` (labelled records) and `ECRIRawData.csv` (unfiltered records, used for pretraining) from github.com/ecri-data/ECRI-Dataset. That repository contains the data and figures only, so the authors' implementation was not available to check against.
 
@@ -57,6 +57,11 @@ It is run with 5 seeds (42–46). Every other setting is a separate sensitivity 
 ## 2. Scope implemented
 
 Every component in the "What Is Implemented" table of `README.md` is complete and runs end to end. The performance figures (comparison, PR curves, pretraining loss and spread, t-SNE, progress quintiles, feature importance, loss ablation, paper vs ours) are in `main/figures/` and `report/`. The kNN extension is in Section 9.
+
+**How the missing-value baselines are read.** The paper names the three plain MLPs (Zeros, Mean, Indicator) but does not define them further. We use:
+- **Zeros:** missing values set to 0 after min-max scaling, which equals each feature's training minimum.
+- **Mean:** missing values set to the training-fold mean of the observed values.
+- **Indicator:** mean filling plus one binary missing-value column per feature (32 inputs), the standard missing-indicator method. The paper's wording could also mean the −1 marker itself, which is the input MaskMLP receives.
 
 ## 3. Methodological checks
 
@@ -205,13 +210,14 @@ Figures: `report/paper_vs_ours_all.png` and `report/paper_vs_ours_intervention.p
 **Likely reasons for the neural gap.** None can be confirmed without the authors' code.
 
 1. **Checkpoint selection.** The paper does not describe a validation set. Choosing each neural model's epoch on the test fold closes most of the neural gap on all students (Section 3.5). That would only inflate the neural models, because the traditional models have no epochs to pick. Our early stopping uses a separate grouped validation split, so no test labels are used for model selection.
-2. **Small labelled set.** Only 936 students per target are used. That leaves about 550–750 training students per fold, and a plain MLP underfits at this size.
-3. **Pretraining gives no benefit in our setup.** Cosine pretraining collapsed (Section 3.4), and neither the collapse-resistant losses nor shorter pretraining (Section 3.6) made MaskMLP better than a plain MLP.
-4. **Unreported training details.** Input scaling, learning rate, batch size and number of epochs are not given in the paper.
+2. **Less labelled data for the neural models.** Our neural models hold back a grouped 20 % of each training fold for early stopping, so they train on about 600 students per fold, while logistic regression and XGBoost, which need no early stopping, train on the whole fold (about 750; the per-fold count is `train_n` in `results.csv`). If the paper trained its MLPs on the whole fold, they had about 25 % more labelled data than ours.
+3. **Small labelled set.** Only 936 students per target are used, and a plain MLP underfits at this size.
+4. **Pretraining gives no benefit in our setup.** Cosine pretraining collapsed (Section 3.4), and neither the collapse-resistant losses nor shorter pretraining (Section 3.6) made MaskMLP better than a plain MLP.
+5. **Unreported training details.** Input scaling, learning rate, batch size and number of epochs are not given in the paper.
 
 ## 5. Robustness
 
-**Seeds.** The primary and strict-scope settings use 5 seeds (42–46). The 946-row, complete-rows, SimSiam and contrastive settings use 3 seeds (`report/robustness.csv`).
+**Seeds.** The primary and strict-scope settings use 5 seeds (42–46). The 946-row, complete-rows, SimSiam and contrastive settings use 3 seeds (`report/robustness.csv`). The seeds change the weight initialisation, the grouped validation split, the masking and XGBoost's subsampling, but not the test folds, because `GroupKFold` assigns groups deterministically. The seed-to-seed spread therefore measures training randomness only, which is why logistic regression, with no random component, shows ± 0.000.
 
 | Model | Accuracy, mean ± std over 5 seeds | Balanced accuracy | PR-AUC |
 |---|---|---|---|
@@ -235,6 +241,8 @@ MaskMLP has the largest seed-to-seed spread of any model.
 | XGBoost | 39 / 5 / 56 | −0.017 |
 
 MaskMLP is level with or slightly below the plain MLPs. Logistic regression beats it in 64 of 100 units and XGBoost in 56.
+
+**Significance tests.** The paper compares MaskMLP with the MLP using a paired t-test over the five folds and reports t = 3.876, p = 0.009. With five folds (4 degrees of freedom), t = 3.876 gives p = 0.009 one-sided or 0.018 two-sided, so the paper's value is the one-sided p. We ran the same paired test for every split, target and subset against each plain MLP (seed 42, `main/significance.csv`). None of the 24 comparisons is significant (smallest two-sided p = 0.060), and MaskMLP is ahead in 9, level in 1 and behind in 14.
 
 **Sensitivity.** Pretraining scope × evaluation rows × pretraining loss × pretraining length is covered in Sections 3.2–3.6 (`report/sensitivity.csv`). In every valid combination, the traditional models remain best.
 
@@ -261,6 +269,7 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 - The default pretraining is transductive (unlabelled test inputs are used), as in the paper. Fully held-out evidence comes from the training-only runs (`results/neural_network/train`).
 - The loss ablation, feature importance, checkpoint-selection diagnostic and pretraining-length runs are single-seed runs (seed 42), so differences of a few points there are within noise.
 - The 946-row, complete-rows, SimSiam and contrastive settings use 3 seeds rather than 5.
+- The neural models train on 80 % of each training fold (the rest is used for early stopping), while the traditional models use the whole fold (Section 4).
 - Results depend slightly on the software environment and settings. An earlier local run of an earlier version of the code (all 946 rows, per-feature random masking) with older package versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) gave accuracies within about 0.015 of those reported here and the same main conclusions.
 - The kNN extension (Section 9) is exploratory and single-seed (seed 42), so it is compared with the seed-42 main run only.
 - TabNet, GRAPE, VIME, SCARF and LightGBM are out of scope for this member.
@@ -332,5 +341,5 @@ python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDat
 | **kNN_MaskMLP_embedding** | **0.515** | **0.504** | 0.575 | 0.523 |
 
 **Findings:**
-- **kNN on the raw features is the weakest of the models trained on those features on all students.** It ranks 7th of 8, 0.037 below logistic regression and 0.007 below MaskMLP. In the intervention group it does slightly better (0.624), above MaskMLP (0.617) and level with MLP (Indicator) (0.623). With 16 features and only about 550–750 training students per fold, a student's nearest neighbours are not much more similar to them than students further away. kNN also leans towards predicting improvement (sensitivity 0.75, specificity 0.34).
+- **kNN on the raw features is the weakest of the models trained on those features on all students.** It ranks 7th of 8, 0.037 below logistic regression and 0.007 below MaskMLP. In the intervention group it does slightly better (0.624), above MaskMLP (0.617) and level with MLP (Indicator) (0.623). With 16 features and only about 750 training students per fold, a student's nearest neighbours are not much more similar to them than students further away. kNN also leans towards predicting improvement (sensitivity 0.75, specificity 0.34).
 - **kNN on MaskMLP's pretrained embeddings is at chance** (balanced accuracy 0.504). This is independent evidence for the collapse in Section 3.4: in this run the encoder's embedding spread fell from about 0.038 to 0.000003–0.00002, so the embeddings no longer separate students and their neighbours carry no information about the outcome. MaskMLP still reaches 0.579 after fine-tuning, which supports the reading that fine-tuning, not pretraining, does the work.
