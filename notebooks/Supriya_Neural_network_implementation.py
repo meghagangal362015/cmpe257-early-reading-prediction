@@ -44,6 +44,9 @@ FEATURES = [
     "gnrl_fid", "TKPctCrct", "NWFcls", "NWFwrc", "ORFwc", "SAwrS",
     "SAsrS", "SAtoS", "RMwidRS", "RMwdaRS",
 ]
+# The eight start-of-year reading assessments. The paper excludes students with missing data from
+# fine-tuning and evaluation, measuring missingness over these assessments (Sec. 3).
+ASSESSMENTS = ["RMwidRS", "RMwdaRS", "NWFcls", "NWFwrc", "ORFwc", "SAwrS", "SAsrS", "SAtoS"]
 TARGETS = ["RMwidRS_target", "RMwdaRS_target"]
 TARGET_NAMES = {"RMwidRS_target": "Word identification", "RMwdaRS_target": "Word attack"}
 TARGET_SCORES = {"RMwidRS_target": "RMwidRS", "RMwdaRS_target": "RMwdaRS"}
@@ -234,6 +237,23 @@ def pretrain_loss(anchor: torch.Tensor, positive: torch.Tensor, negative: torch.
     return torch.stack(terms).mean()
 
 
+def mask_observed(batch: torch.Tensor, rate: float, mode: str) -> torch.Tensor:
+    """Set a random subset of each student's observed features to -1 (paper Sec. 5: "randomly mask 25%
+    of the observed variables"). exact: round(rate x observed count) features per student, at least one
+    when two or more are observed; bernoulli: each observed feature independently with probability rate."""
+    observed = batch != -1
+    if mode == "bernoulli":
+        choose = (torch.rand_like(batch) < rate) & observed
+    else:
+        count = observed.sum(dim=1, keepdim=True)
+        n_mask = torch.floor(count * rate + 0.5)
+        n_mask = torch.where(count >= 2, n_mask.clamp(min=1), torch.zeros_like(n_mask))
+        scores = torch.where(observed, torch.rand_like(batch), torch.full_like(batch, 2.0))
+        rank = scores.argsort(dim=1).argsort(dim=1)
+        choose = (rank < n_mask) & observed
+    return torch.where(choose, torch.full_like(batch, -1.0), batch)
+
+
 def pretrain(model: MLP, x: np.ndarray, args, device: torch.device):
     loader = DataLoader(TensorDataset(torch.from_numpy(x)), batch_size=args.batch_size, shuffle=True)
     hidden = model.classifier.in_features
@@ -248,8 +268,7 @@ def pretrain(model: MLP, x: np.ndarray, args, device: torch.device):
         total = 0.0
         for (batch,) in loader:
             batch = batch.to(device)
-            choose = (torch.rand_like(batch) < args.mask_rate) & (batch != -1)
-            masked = torch.where(choose, torch.full_like(batch, -1.0), batch)
+            masked = mask_observed(batch, args.mask_rate, args.mask_mode)
             anchor = model.encoder(batch)
             positive = model.encoder(masked)
             negative = anchor.roll(1, dims=0)  # batches are shuffled, so this is a random other student
@@ -264,12 +283,14 @@ def pretrain(model: MLP, x: np.ndarray, args, device: torch.device):
 
 
 def fit(model: MLP, x: np.ndarray, y: np.ndarray, xv: np.ndarray, yv: np.ndarray, args, device):
+    """Fine-tune with BCE. Normally: early stopping on validation loss. With --select-on-test (diagnostic
+    only), xv/yv are the test fold and the epoch with the best test accuracy is kept, without early stopping."""
     loader = DataLoader(TensorDataset(torch.from_numpy(x), torch.from_numpy(y)), batch_size=args.batch_size, shuffle=True)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
     criterion = nn.BCEWithLogitsLoss()
     xv_tensor = torch.from_numpy(xv).to(device)
     yv_tensor = torch.from_numpy(yv).to(device)
-    best_loss = float("inf")
+    best_score = -float("inf")
     best_state = None
     patience = 0
     for _ in range(args.epochs):
@@ -282,10 +303,12 @@ def fit(model: MLP, x: np.ndarray, y: np.ndarray, xv: np.ndarray, yv: np.ndarray
             optimizer.step()
         model.eval()
         with torch.no_grad():
-            val_loss = criterion(model(xv_tensor), yv_tensor).item()
-        if val_loss < best_loss - 1e-6:
-            best_loss, best_state, patience = val_loss, copy.deepcopy(model.state_dict()), 0
-        else:
+            logits = model(xv_tensor)
+            score = (((logits > 0).float() == yv_tensor).float().mean().item() if args.select_on_test
+                     else -criterion(logits, yv_tensor).item())
+        if score > best_score + 1e-6:
+            best_score, best_state, patience = score, copy.deepcopy(model.state_dict()), 0
+        elif not args.select_on_test:
             patience += 1
             if patience >= args.patience:
                 break
@@ -324,6 +347,8 @@ def make_folds(df: pd.DataFrame, group: str, target: str, args):
     labeled = df[df[target].notna()].copy()
     if args.eval_rows == "complete":
         labeled = labeled[labeled[FEATURES].notna().all(axis=1)]
+    elif args.eval_rows == "assessments":
+        labeled = labeled[labeled[ASSESSMENTS].notna().all(axis=1)]
     labeled["_label"] = labeled[target].astype(int)
     if labeled[group_col].nunique() < 5:
         raise ValueError("Insufficient groups for five folds")
@@ -349,7 +374,7 @@ def pretrained_maskmlp(features, pretrain_records, args, device, seed):
     """Pretrain a MaskMLP encoder, reusing it when the pretraining data and settings are identical.
     With --pretrain-scope all the encoder does not depend on the split or target, so it is shared."""
     xpre = matrix(pretrain_records, features)
-    key = (tuple(features), seed, args.pretrain_loss, args.pretrain_epochs, args.mask_rate, args.learning_rate,
+    key = (tuple(features), seed, args.pretrain_loss, args.pretrain_epochs, args.mask_rate, args.mask_mode, args.learning_rate,
            args.batch_size, args.hidden_size, args.layers, args.contrastive_margin, args.triplet_margin, len(xpre))
     scaler = fit_scaler(xpre)
     model = MLP(len(features), args.hidden_size, args.layers).to(device)
@@ -389,8 +414,10 @@ def fit_predict(method, features, train, valid, test, pretrain_records, args, de
         mean = observed_mean(scale(xraw, scaler))
         encode = lambda frame: impute_baseline(scale(matrix(frame, features), scaler), method, mean)
         model = MLP(encode(train.iloc[:1]).shape[1], args.hidden_size, args.layers).to(device)
+    # --select-on-test (diagnostic only): choose the epoch on the test fold, which uses test labels.
+    selection = test if args.select_on_test else valid
     fit(model, encode(train), train["_label"].to_numpy(np.float32),
-        encode(valid), valid["_label"].to_numpy(np.float32), args, device)
+        encode(selection), selection["_label"].to_numpy(np.float32), args, device)
     return probabilities(model, encode(test), device), info, (model, encode)
 
 
@@ -861,7 +888,10 @@ def run(args):
     rows, predictions, folds, pretrain_log, tsne = [], [], [], [], None
     print(f"Dataset: {len(df)} student rows; pretraining pool: {pool_size} students; device: {device}; "
           f"targets: {targets}; evaluating {args.eval_rows} rows; pretraining loss: {args.pretrain_loss}; "
-          f"models: {methods}", flush=True)
+          f"masking: {args.mask_mode}; models: {methods}", flush=True)
+    if args.select_on_test:
+        print("WARNING: --select-on-test chooses each neural model's epoch on the TEST fold. This uses test labels "
+              "and gives optimistic results; it is a diagnostic only, not a reproduction result.", flush=True)
     if not use_raw:
         print("NOTE: pass --raw-dataset ECRIRawData.csv to pretrain MaskMLP on all 6,916 students "
               "(ECRIDataSet.csv holds 6,803).", flush=True)
@@ -939,9 +969,9 @@ def main():
     parser.add_argument("--models", choices=list(MODEL_SETS), default="all",
                         help="all: neural models plus logistic regression and XGBoost as a same-fold reference; "
                              "neural: MLPs and MaskMLP only")
-    parser.add_argument("--eval-rows", choices=["complete", "all"], default="all",
-                        help="all: every labeled student (946; the paper's rule, complete reading assessments, "
-                             "keeps 936); complete: only students with all 16 features (706), stricter than the paper")
+    parser.add_argument("--eval-rows", choices=["assessments", "all", "complete"], default="assessments",
+                        help="assessments (default, the paper's rule): students with all eight reading assessments (936); "
+                             "all: every labeled student (946); complete: students with all 16 features (706)")
     parser.add_argument("--hidden-size", type=int, default=64)
     parser.add_argument("--layers", type=int, default=3)
     parser.add_argument("--epochs", type=int, default=100)
@@ -949,6 +979,9 @@ def main():
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=1e-3)
     parser.add_argument("--mask-rate", type=float, default=0.25)
+    parser.add_argument("--mask-mode", choices=["exact", "bernoulli"], default="exact",
+                        help="exact (default): mask round(25%% of observed features) per student, as the paper states; "
+                             "bernoulli: mask each observed feature independently with probability --mask-rate")
     parser.add_argument("--patience", type=int, default=15)
     parser.add_argument("--pretrain-scope", choices=["all", "train"], default="all",
                         help="all: pretrain on every student without labels, as in the paper; "
@@ -975,6 +1008,9 @@ def main():
     parser.add_argument("--plots-only", action="store_true", help="redraw figures from an existing --output-dir")
     parser.add_argument("--skip-main", action="store_true",
                         help="only run --importance / --loss-ablation into an existing --output-dir")
+    parser.add_argument("--select-on-test", action="store_true",
+                        help="DIAGNOSTIC ONLY: pick each neural model's best epoch on the test fold (uses test labels, "
+                             "optimistic). Tests whether checkpoint selection explains the gap to the paper.")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--cpu", action="store_true")
     run(parser.parse_args())

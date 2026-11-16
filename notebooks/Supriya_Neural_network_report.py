@@ -35,7 +35,7 @@ from Supriya_Neural_network_implementation import (COLORS, EXTENSION_LOSSES, INK
 
 MODELS = ("LogisticRegression", "XGBoost", "MLP_zero", "MLP_mean", "MLP_indicator", "MaskMLP")
 PLAIN_MLPS = ("MLP_zero", "MLP_mean", "MLP_indicator")
-SETTING = ["loss", "scope", "rows"]
+SETTING = ["loss", "scope", "rows", "variant"]
 METRICS = ["accuracy", "balanced_accuracy", "pr_auc"]
 # Paper Table 1 columns: (target, subset, metric) in published order.
 TABLE1_COLUMNS = [(t, s, m) for t in ("RMwidRS_target", "RMwdaRS_target") for s in ("all", "intervention")
@@ -74,8 +74,21 @@ def run_config(folder: Path) -> dict | None:
         return None
     config = json.loads(path.read_text())
     return {"loss": config.get("pretrain_loss", "cosine"), "scope": config.get("pretrain_scope", "all"),
-            "rows": config.get("eval_rows", "all"), "seed": int(config.get("seed", 42)),
+            "rows": config.get("eval_rows", "all"), "variant": variant(config), "seed": int(config.get("seed", 42)),
             "pool": config.get("pretrain_pool_size")}
+
+
+def variant(config: dict) -> str:
+    """Settings that are not part of the standard protocol, so such runs are never pooled with standard ones.
+    Configs without mask_mode come from runs that used per-feature (Bernoulli) masking."""
+    parts = []
+    if config.get("mask_mode", "bernoulli") != "exact":
+        parts.append(f"mask={config.get('mask_mode', 'bernoulli')}")
+    if int(config.get("pretrain_epochs", 100)) != 100:
+        parts.append(f"pretrain_epochs={config['pretrain_epochs']}")
+    if config.get("select_on_test"):
+        parts.append("test_selection_diagnostic")
+    return ";".join(parts) or "standard"
 
 
 def load_runs(root: Path) -> pd.DataFrame:
@@ -101,16 +114,19 @@ def loss_origin(loss) -> str:
 
 
 def label(setting) -> str:
-    loss, scope, rows = setting
-    return f"loss={loss}, pretrain={scope}, rows={rows}"
+    loss, scope, rows, kind = setting
+    return f"loss={loss}, pretrain={scope}, rows={rows}, variant={kind}"
 
 
 def pick_primary(folds: pd.DataFrame, requested: str) -> tuple:
     wanted = tuple(requested.split(","))
+    if len(wanted) == 3:
+        wanted += ("standard",)
     available = folds.groupby(SETTING)["seed"].nunique()
     if wanted in available.index:
         return wanted
-    paper = available[[loss_origin(s[0]) == "paper" for s in available.index]]
+    # Fall back only to paper losses and never to a diagnostic or non-standard variant.
+    paper = available[[loss_origin(s[0]) == "paper" and s[3] in ("standard", "mask=bernoulli") for s in available.index]]
     fallback = (paper if not paper.empty else available).idxmax()
     print(f"NOTE: primary setting {label(wanted)} not found; using {label(fallback)}")
     return fallback
@@ -168,7 +184,7 @@ def sensitivity(folds: pd.DataFrame) -> pd.DataFrame:
     for setting, part in allrows.groupby(SETTING):
         means = part.groupby("model")[METRICS].mean()
         common = {"pretrain_loss": setting[0], "loss_origin": loss_origin(setting[0]),
-                  "pretrain_scope": setting[1], "eval_rows": setting[2],
+                  "pretrain_scope": setting[1], "eval_rows": setting[2], "variant": setting[3],
                   "seeds": part["seed"].nunique(), "splits": ",".join(sorted(part["group"].unique())),
                   "targets": ",".join(sorted(part["target"].unique()))}
         for model, values in means.iterrows():
@@ -184,7 +200,8 @@ def robustness(folds: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         if part["seed"].nunique() < 2:
             continue
         common = {"pretrain_loss": setting[0], "loss_origin": loss_origin(setting[0]),
-                  "pretrain_scope": setting[1], "eval_rows": setting[2], "seeds": part["seed"].nunique()}
+                  "pretrain_scope": setting[1], "eval_rows": setting[2], "variant": setting[3],
+                  "seeds": part["seed"].nunique()}
         per_seed = part.groupby(["model", "seed"])[METRICS].mean()
         stats = per_seed.groupby("model").agg(["mean", "std", "min", "max"])
         stats.columns = [f"{m}_{s}" for m, s in stats.columns]
@@ -208,6 +225,7 @@ def collapse(folds: pd.DataFrame, root: Path) -> pd.DataFrame:
     mask = folds[(folds["model"] == "MaskMLP") & (folds["subset"] == "all")]
     for run, part in mask.groupby("run"):
         row = {"source": run, "pretrain_loss": part["loss"].iloc[0], "pretrain_scope": part["scope"].iloc[0],
+               "eval_rows": part["rows"].iloc[0], "variant": part["variant"].iloc[0],
                "seed": part["seed"].iloc[0], "spread_before": part["embedding_spread_initial"].mean(),
                "spread_after": part["embedding_spread"].mean(), "maskmlp_accuracy": part["accuracy"].mean()}
         log = root / run / "pretrain_log.csv"
@@ -273,8 +291,8 @@ def write(table: pd.DataFrame, path: Path) -> None:
 def main():
     parser = argparse.ArgumentParser(description="Paper comparison and robustness report for Supriya_Neural_network_implementation.py outputs")
     parser.add_argument("--outputs", default="results/neural_network")
-    parser.add_argument("--primary", default="cosine,all,all",
-                        help="setting compared with Table 1: pretrain_loss,pretrain_scope,eval_rows")
+    parser.add_argument("--primary", default="cosine,all,assessments",
+                        help="setting compared with Table 1: pretrain_loss,pretrain_scope,eval_rows (standard variant)")
     args = parser.parse_args()
     root = Path(args.outputs)
     report = root / "report"
@@ -282,7 +300,7 @@ def main():
     folds = load_runs(root)
     print("Runs found:", ", ".join(sorted(folds["run"].unique())))
     primary = pick_primary(folds, args.primary)
-    primary_runs = folds[(folds["loss"] == primary[0]) & (folds["scope"] == primary[1]) & (folds["rows"] == primary[2])]
+    primary_runs = folds[(folds[SETTING] == pd.Series(primary, index=SETTING)).all(axis=1)]
     table = table1_comparison(primary_runs)
     write(table, report / "table1_comparison.csv")
     write(auc_interpretation(), report / "auc_interpretation.csv")

@@ -6,6 +6,7 @@ ECRIRawData.csv
 results/neural_network/**/predictions.csv
 results/neural_network/**/folds.csv
 results/neural_network/*/*/figures/
+results/neural_network/diagnostic_test_selection/figures/
 
 *.zip
 log_*.txt

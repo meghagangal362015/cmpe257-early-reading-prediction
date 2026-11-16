@@ -1,0 +1,25 @@
+{
+  "dataset_students": 6803,
+  "rebuilt_students": 6916,
+  "shared_students": 6803,
+  "dataset_students_missing_from_raw": 0,
+  "cells_compared": 115651,
+  "mismatched_cells": 0,
+  "verified": true,
+  "labels": {
+    "label_definition": "gain(t=1 minus t=0) > mean gain of Tx=0 students",
+    "RMwidRS_target": {
+      "released_labels": 946,
+      "rebuilt_and_compared": 946,
+      "mismatched_labels": 0,
+      "control_mean_gain": 26.321083172147002
+    },
+    "RMwdaRS_target": {
+      "released_labels": 946,
+      "rebuilt_and_compared": 946,
+      "mismatched_labels": 0,
+      "control_mean_gain": 10.754352030947775
+    },
+    "verified": true
+  }
+}
