@@ -150,10 +150,12 @@ def write_comparison(out: Path, args, fold_df: pd.DataFrame | None = None) -> No
             raise SystemExit(f"{saved} not found; run the kNN models first (without --compare-only)")
         config = out / "config.json"
         if config.exists():
-            args.seed = json.loads(config.read_text()).get("seed", args.seed)
+            saved_config = json.loads(config.read_text())
+            args.seed = saved_config.get("seed", args.seed)
+            args.eval_rows = saved_config.get("eval_rows", "all")
         fold_df = pd.read_csv(saved)
         fold_df = fold_df[fold_df["record_type"] == "fold"]
-    comparison = compare(fold_df, Path(args.reference_run), args.seed)
+    comparison = compare(fold_df, Path(args.reference_run), args.seed, args.eval_rows)
     if comparison is not None:
         comparison.to_csv(out / "comparison.csv", index=False)
         plot(comparison, out / "knn_comparison.png")
@@ -162,15 +164,18 @@ def write_comparison(out: Path, args, fold_df: pd.DataFrame | None = None) -> No
         print(f"Comparison written to {out}", flush=True)
 
 
-def compare(fold_df: pd.DataFrame, reference_run: Path, seed: int):
-    """Mean over folds for the kNN models next to the six models of the reference run (same seed, same folds)."""
+def compare(fold_df: pd.DataFrame, reference_run: Path, seed: int, eval_rows: str):
+    """Mean over folds for the kNN models next to the six models of the reference run (same seed, same rows, same folds)."""
     results, config = reference_run / "results.csv", reference_run / "config.json"
     if not results.exists():
         print(f"NOTE: {results} not found; skipping the comparison with the other models", flush=True)
         return None
-    if config.exists() and json.loads(config.read_text()).get("seed") != seed:
-        print(f"NOTE: {reference_run} used a different seed, so its folds differ; skipping the comparison", flush=True)
-        return None
+    if config.exists():
+        reference_config = json.loads(config.read_text())
+        if reference_config.get("seed") != seed or reference_config.get("eval_rows", "all") != eval_rows:
+            print(f"NOTE: {reference_run} used a different seed or evaluation rows, so its folds differ; "
+                  "skipping the comparison", flush=True)
+            return None
     reference = pd.read_csv(results)
     reference = reference[reference["record_type"] == "fold"]
     keys = ["group", "target", "model", "subset"]
@@ -222,7 +227,7 @@ def main():
     parser.add_argument("--compare-only", action="store_true",
                         help="rebuild comparison.csv and knn_comparison.png from an existing --output-dir without retraining")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--eval-rows", choices=["complete", "all"], default="all")
+    parser.add_argument("--eval-rows", choices=["assessments", "all", "complete"], default="assessments")
     parser.add_argument("--pretrain-scope", choices=["all", "train"], default="all")
     parser.add_argument("--pretrain-loss", type=loss_spec, default="cosine",
                         help="loss for the MaskMLP encoder used by kNN_MaskMLP_embedding (e.g. cosine, simsiam)")
@@ -232,6 +237,7 @@ def main():
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=1e-3)
     parser.add_argument("--mask-rate", type=float, default=0.25)
+    parser.add_argument("--mask-mode", choices=["exact", "bernoulli"], default="exact")
     parser.add_argument("--contrastive-margin", type=float, default=0.0)
     parser.add_argument("--triplet-margin", type=float, default=1.0)
     parser.add_argument("--collapse-ratio", type=float, default=0.1)
