@@ -56,7 +56,7 @@ Students are grouped by school. The models use five-fold cross-validation groupe
 
 The paper-aligned experiments compare:
 
-- Logistic Regression and Decision Tree baseline models
+- Baseline models: Logistic Regression, Linear Regression, Decision Tree and Decision Tree Regressor
 - Random Forest
 - XGBoost
 - Multi-Layer Perceptron (MLP)
@@ -70,6 +70,8 @@ Additional extension experiments include:
 - Feature-group ablation
 - Feature-importance analysis
 - k-nearest neighbours (raw features and MaskMLP embeddings)
+- Lasso (L1) and Ridge (L2) Logistic Regression, and SVM
+- Multicollinearity check and t-SNE visualisation of the data
 
 The Random Forest and XGBoost paper-aligned experiments use five-fold cross-validation grouped by school. Gaussian Naive Bayes was added as an extension model using the same evaluation setup.
 
@@ -90,6 +92,45 @@ The main evaluation metrics are:
 The paper's tables label a metric "AUC"; its values equal balanced accuracy, so the neural-network section uses balanced accuracy when comparing with the paper (see `reports/Supriya_Neural_Network_REPORT.md`, Section 3.1).
 
 The paper-aligned experiments do not use a fixed 70/15/15 train-validation-test split. Unlabeled students may be used for MaskMLP pretraining, while supervised models use labeled students only.
+
+## Baseline Models
+
+The baseline models use the same 706 students, 16 features and five-fold cross-validation grouped by school as the models above. Each model's settings (for example tree depth or regularisation strength) are chosen inside the training folds only.
+
+- **Classifiers** predict the high/low growth label directly.
+- **Regressors** (Linear Regression, Decision Tree Regressor) predict the reading score gain, which is then turned into a label by comparing it with the control group's average gain.
+
+School-grouped split, mean over 5 folds:
+
+| Model | Word ID Accuracy | Word ID PR-AUC | Word Attack Accuracy | Word Attack PR-AUC |
+|---|---:|---:|---:|---:|
+| Logistic Regression | 0.640 | 0.683 | 0.611 | 0.694 |
+| Linear Regression | 0.644 | 0.686 | 0.604 | 0.703 |
+| Decision Tree | 0.636 | 0.649 | 0.558 | 0.624 |
+| Decision Tree Regressor | 0.646 | 0.641 | 0.585 | 0.619 |
+| Lasso (L1) Logistic Regression | 0.640 | 0.692 | 0.606 | 0.686 |
+| Ridge (L2) Logistic Regression | 0.637 | 0.683 | 0.613 | 0.693 |
+| SVM | 0.639 | 0.685 | 0.581 | 0.661 |
+
+What we found:
+
+- **Simple linear models do as well as anything else.** Logistic and Linear Regression score about the same as Random Forest and XGBoost; Lasso, Ridge and SVM do not improve on them.
+- **Decision trees are the weakest**, especially for Word Attack.
+- **No multicollinearity problem:** every feature has a VIF below 3.5, so the coefficients can be read safely.
+- **The data itself sets the limit.** In a t-SNE picture, high- and low-growth students are mixed together: only 55% of a student's 10 most similar students share their label, against 50% by chance. This explains why every model stays around ROC AUC 0.67.
+
+Notebooks (`notebooks/anupama_*.ipynb`):
+
+| Notebook | What it does |
+|---|---|
+| `anupama_data_collinearity` | Data check, correlation matrix and VIF |
+| `anupama_logistic_regression_cv`, `anupama_linear_regression_cv` | Linear baselines |
+| `anupama_decision_tree_cv`, `anupama_decision_tree_regressor_cv` | Tree baselines |
+| `anupama_lasso_logistic_regression_cv`, `anupama_ridge_logistic_regression_cv`, `anupama_svm_cv` | Extension models |
+| `anupama_baseline_evaluation` | Compares all baselines: accuracy, precision, recall, ROC AUC, PR-AUC, error metrics, ROC and precision-recall curves |
+| `anupama_tsne` | t-SNE picture of the data |
+
+Main results: `results/baseline_models_cv_summary.csv`, `results/baseline_roc_curves.png`, `results/baseline_precision_recall_curves.png`.
 
 ## Paper-Aligned Results
 
@@ -160,6 +201,7 @@ Naive Bayes results are available in:
 - Random Forest performed best for Word Identification.
 - XGBoost performed best for Word Attack.
 - Naive Bayes worked successfully but did not improve the results.
+- Simple baselines (Logistic and Linear Regression) performed about as well as the more complex models.
 - The neural networks (MLPs and MaskMLP) did not outperform the traditional models on the same folds, and MaskMLP's reported advantage over the plain MLPs was not reproduced.
 - Tree-based models were better suited to the relationships among the reading features.
 - Model performance varied across school-based folds.
@@ -374,7 +416,7 @@ On Windows, keep the folder path short, because paths over 260 characters make f
 
 | Team Member | Responsibility |
 |---|---|
-| Anupama Singh | Baseline models using Linear Regression and Decision Tree |
+| Anupama Singh | Baseline models (Logistic Regression, Linear Regression, Decision Tree, Decision Tree Regressor); extensions (Lasso, Ridge, SVM); multicollinearity check, model evaluation and t-SNE |
 | Megha Gangal | Random Forest, XGBoost, Gaussian Naive Bayes, hyperparameter tuning, feature ablation, and feature-importance analysis |
 | Supriya Kavitha Venkatesan | MLP (Zeros, Mean, Indicator) and MaskMLP reimplementation: masked self-supervised pretraining on all 6,916 students with the cosine loss, then fine-tuning; school- and student-grouped evaluation on the paper's 936 students per target, compared with Logistic Regression and XGBoost on the same folds and with the paper's Table 1; progress-quintile, t-SNE, feature-importance and loss-ablation analyses; checks of the paper's AUC metric, pretraining scope, evaluation rows, embedding collapse and checkpoint selection; kNN extension |
 
