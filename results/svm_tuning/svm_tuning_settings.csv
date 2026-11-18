@@ -1,0 +1,201 @@
+variant,split,target,fold,setting,cutoff
+A. tiny grid (2 settings),school,Word Attack,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Attack,2,"linear, C=0.1, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Attack,3,"linear, C=0.1, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Attack,4,"linear, C=0.1, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Attack,5,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Identification,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Identification,2,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Identification,3,"linear, C=0.1, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Identification,4,"linear, C=0.1, standard scaling",0.0
+A. tiny grid (2 settings),school,Word Identification,5,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Attack,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Attack,2,"linear, C=0.1, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Attack,3,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Attack,4,"linear, C=0.1, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Attack,5,"linear, C=0.1, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Identification,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Identification,2,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Identification,3,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Identification,4,"rbf, C=1, gamma=scale, standard scaling",0.0
+A. tiny grid (2 settings),student,Word Identification,5,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),school,Word Attack,1,"rbf, C=3, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),school,Word Attack,2,"linear, C=1, standard scaling",0.0
+B. small grid (4 settings),school,Word Attack,3,"linear, C=1, standard scaling",0.0
+B. small grid (4 settings),school,Word Attack,4,"linear, C=1, standard scaling",0.0
+B. small grid (4 settings),school,Word Attack,5,"rbf, C=3, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),school,Word Identification,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),school,Word Identification,2,"linear, C=1, standard scaling",0.0
+B. small grid (4 settings),school,Word Identification,3,"linear, C=0.1, standard scaling",0.0
+B. small grid (4 settings),school,Word Identification,4,"linear, C=1, standard scaling",0.0
+B. small grid (4 settings),school,Word Identification,5,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),student,Word Attack,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),student,Word Attack,2,"linear, C=0.1, standard scaling",0.0
+B. small grid (4 settings),student,Word Attack,3,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),student,Word Attack,4,"linear, C=0.1, standard scaling",0.0
+B. small grid (4 settings),student,Word Attack,5,"linear, C=1, standard scaling",0.0
+B. small grid (4 settings),student,Word Identification,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),student,Word Identification,2,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),student,Word Identification,3,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),student,Word Identification,4,"rbf, C=1, gamma=scale, standard scaling",0.0
+B. small grid (4 settings),student,Word Identification,5,"rbf, C=1, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),school,Word Attack,1,"rbf, C=3, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),school,Word Attack,2,"linear, C=1, standard scaling",0.0
+C. original grid (7 settings),school,Word Attack,3,"linear, C=1, standard scaling",0.0
+C. original grid (7 settings),school,Word Attack,4,"linear, C=1, standard scaling",0.0
+C. original grid (7 settings),school,Word Attack,5,"rbf, C=3, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),school,Word Identification,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),school,Word Identification,2,"linear, C=1, standard scaling",0.0
+C. original grid (7 settings),school,Word Identification,3,"linear, C=0.1, standard scaling",0.0
+C. original grid (7 settings),school,Word Identification,4,"rbf, C=0.3, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),school,Word Identification,5,"rbf, C=1, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),student,Word Attack,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),student,Word Attack,2,"linear, C=0.1, standard scaling",0.0
+C. original grid (7 settings),student,Word Attack,3,"rbf, C=0.3, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),student,Word Attack,4,"linear, C=0.1, standard scaling",0.0
+C. original grid (7 settings),student,Word Attack,5,"linear, C=1, standard scaling",0.0
+C. original grid (7 settings),student,Word Identification,1,"rbf, C=1, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),student,Word Identification,2,"rbf, C=1, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),student,Word Identification,3,"rbf, C=1, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),student,Word Identification,4,"rbf, C=1, gamma=scale, standard scaling",0.0
+C. original grid (7 settings),student,Word Identification,5,"rbf, C=1, gamma=scale, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Attack,1,"rbf, C=3, gamma=scale, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Attack,2,"rbf, C=10, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Attack,3,"rbf, C=10, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Attack,4,"rbf, C=1, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Attack,5,"rbf, C=3, gamma=0.03, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Identification,1,"rbf, C=3, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Identification,2,"rbf, C=3, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Identification,3,"rbf, C=3, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Identification,4,"rbf, C=1, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),school,Word Identification,5,"rbf, C=10, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Attack,1,"rbf, C=3, gamma=0.03, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Attack,2,"rbf, C=3, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Attack,3,"rbf, C=1, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Attack,4,"rbf, C=3, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Attack,5,"rbf, C=3, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Identification,1,"rbf, C=3, gamma=0.03, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Identification,2,"rbf, C=10, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Identification,3,"rbf, C=10, gamma=0.01, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Identification,4,"rbf, C=3, gamma=0.03, standard scaling",0.0
+D. small RBF grid (9 settings),student,Word Identification,5,"rbf, C=10, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Attack,1,"rbf, C=3, gamma=scale, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Attack,2,"linear, C=3, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Attack,3,"rbf, C=10, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Attack,4,"rbf, C=0.1, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Attack,5,"rbf, C=30, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Identification,1,"rbf, C=3, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Identification,2,"rbf, C=3, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Identification,3,"rbf, C=3, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Identification,4,"rbf, C=1, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",school,Word Identification,5,"rbf, C=10, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Attack,1,"rbf, C=3, gamma=0.03, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Attack,2,"rbf, C=3, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Attack,3,"rbf, C=1, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Attack,4,"rbf, C=3, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Attack,5,"linear, C=0.3, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Identification,1,"rbf, C=3, gamma=0.03, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Identification,2,"rbf, C=10, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Identification,3,"rbf, C=10, gamma=0.01, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Identification,4,"rbf, C=3, gamma=0.03, standard scaling",0.0
+"E. medium grid (24 settings, now used)",student,Word Identification,5,"rbf, C=10, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Attack,1,"rbf, C=3, gamma=scale, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Attack,2,"linear, C=3, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Attack,3,"rbf, C=0.3, gamma=0.03, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Attack,4,"linear, C=0.3, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Attack,5,"rbf, C=30, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Identification,1,"rbf, C=3, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Identification,2,"rbf, C=3, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Identification,3,"rbf, C=3, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Identification,4,"rbf, C=1, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),school,Word Identification,5,"rbf, C=10, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Attack,1,"rbf, C=3, gamma=0.03, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Attack,2,"linear, C=0.3, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Attack,3,"rbf, C=1, gamma=scale, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Attack,4,"rbf, C=3, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Attack,5,"linear, C=0.3, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Identification,1,"rbf, C=3, gamma=0.03, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Identification,2,"rbf, C=10, gamma=0.01, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Identification,3,"rbf, C=10, gamma=0.01, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Identification,4,"rbf, C=10, gamma=0.01, balanced, standard scaling",0.0
+F. medium grid + class weights (48 settings),student,Word Identification,5,"rbf, C=10, gamma=0.01, balanced, standard scaling",0.0
+G. wider grid (102 settings),school,Word Attack,1,"rbf, C=1, gamma=0.1",0.0
+G. wider grid (102 settings),school,Word Attack,2,"rbf, C=30, gamma=0.01, balanced",0.0
+G. wider grid (102 settings),school,Word Attack,3,"rbf, C=3, gamma=0.003, balanced",0.0
+G. wider grid (102 settings),school,Word Attack,4,"linear, C=0.3, balanced",0.0
+G. wider grid (102 settings),school,Word Attack,5,"rbf, C=30, gamma=0.01",0.0
+G. wider grid (102 settings),school,Word Identification,1,"rbf, C=3, gamma=0.01",0.0
+G. wider grid (102 settings),school,Word Identification,2,"rbf, C=30, gamma=0.003, balanced",0.0
+G. wider grid (102 settings),school,Word Identification,3,"rbf, C=10, gamma=0.003",0.0
+G. wider grid (102 settings),school,Word Identification,4,"rbf, C=10, gamma=0.003",0.0
+G. wider grid (102 settings),school,Word Identification,5,"rbf, C=10, gamma=0.01",0.0
+G. wider grid (102 settings),student,Word Attack,1,"rbf, C=3, gamma=0.03",0.0
+G. wider grid (102 settings),student,Word Attack,2,"linear, C=0.3, balanced",0.0
+G. wider grid (102 settings),student,Word Attack,3,"rbf, C=1, gamma=0.1, balanced",0.0
+G. wider grid (102 settings),student,Word Attack,4,"rbf, C=30, gamma=0.003",0.0
+G. wider grid (102 settings),student,Word Attack,5,"linear, C=0.3, balanced",0.0
+G. wider grid (102 settings),student,Word Identification,1,"rbf, C=3, gamma=0.03, balanced",0.0
+G. wider grid (102 settings),student,Word Identification,2,"rbf, C=10, gamma=0.01",0.0
+G. wider grid (102 settings),student,Word Identification,3,"rbf, C=10, gamma=0.01, balanced",0.0
+G. wider grid (102 settings),student,Word Identification,4,"rbf, C=10, gamma=0.01, balanced",0.0
+G. wider grid (102 settings),student,Word Identification,5,"rbf, C=30, gamma=0.003, balanced",0.0
+"H. random search (150), pick by ROC AUC",school,Word Attack,1,"rbf, C=0.693, gamma=0.398, balanced, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Attack,2,"linear, C=6.49, balanced, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Attack,3,"sigmoid, C=0.108, gamma=0.436, balanced, standard scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Attack,4,"linear, C=0.555, balanced, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Attack,5,"rbf, C=3.67, gamma=0.0736, balanced, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Identification,1,"rbf, C=1.32, gamma=0.0233, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Identification,2,"linear, C=4.32, quantile scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Identification,3,"rbf, C=12.9, gamma=0.00367, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Identification,4,"rbf, C=1.32, gamma=0.0233, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",school,Word Identification,5,"linear, C=4.32, quantile scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Attack,1,"rbf, C=0.693, gamma=0.398, balanced, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Attack,2,"linear, C=0.551, balanced, standard scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Attack,3,"rbf, C=0.7, gamma=0.201, balanced, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Attack,4,"poly, C=0.162, gamma=0.0238, degree=3, quantile scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Attack,5,"linear, C=0.551, balanced, standard scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Identification,1,"rbf, C=1.72, gamma=0.0289, balanced, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Identification,2,"rbf, C=6.16, gamma=0.0112, balanced, quantile scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Identification,3,"rbf, C=1.72, gamma=0.0289, balanced, robust scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Identification,4,"rbf, C=96.6, gamma=0.00252, balanced, standard scaling",0.0
+"H. random search (150), pick by ROC AUC",student,Word Identification,5,"linear, C=1.2, quantile scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Attack,1,"rbf, C=0.693, gamma=0.398, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Attack,2,"rbf, C=0.00366, gamma=0.00424, standard scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Attack,3,"sigmoid, C=0.108, gamma=0.436, balanced, standard scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Attack,4,"rbf, C=5.82, gamma=0.00571, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Attack,5,"rbf, C=1.72, gamma=0.0289, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Identification,1,"linear, C=1.2, quantile scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Identification,2,"rbf, C=0.7, gamma=0.201, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Identification,3,"rbf, C=1.32, gamma=0.0233, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Identification,4,"rbf, C=1.32, gamma=0.0233, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",school,Word Identification,5,"linear, C=4.32, quantile scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Attack,1,"rbf, C=0.693, gamma=0.398, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Attack,2,"linear, C=0.759, balanced, standard scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Attack,3,"rbf, C=0.7, gamma=0.201, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Attack,4,"rbf, C=0.7, gamma=0.201, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Attack,5,"rbf, C=0.00366, gamma=0.00424, standard scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Identification,1,"rbf, C=1.72, gamma=0.0289, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Identification,2,"linear, C=1.2, quantile scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Identification,3,"rbf, C=1.72, gamma=0.0289, balanced, robust scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Identification,4,"rbf, C=18.2, gamma=0.00036, quantile scaling",0.0
+"I. random search (150), pick by PR-AUC",student,Word Identification,5,"linear, C=1.2, quantile scaling",0.0
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Attack,1,"rbf, C=0.693, gamma=0.398, balanced, robust scaling",-0.181
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Attack,2,"rbf, C=0.00366, gamma=0.00424, standard scaling",1.0
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Attack,3,"sigmoid, C=0.108, gamma=0.436, balanced, standard scaling",-0.877
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Attack,4,"rbf, C=5.82, gamma=0.00571, balanced, robust scaling",-0.74
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Attack,5,"rbf, C=1.72, gamma=0.0289, balanced, robust scaling",-0.603
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Identification,1,"linear, C=1.2, quantile scaling",0.033
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Identification,2,"rbf, C=0.7, gamma=0.201, balanced, robust scaling",-0.153
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Identification,3,"rbf, C=1.32, gamma=0.0233, robust scaling",-0.24
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Identification,4,"rbf, C=1.32, gamma=0.0233, robust scaling",-0.006
+"J. random search (150), PR-AUC + tuned cutoff",school,Word Identification,5,"linear, C=4.32, quantile scaling",-0.067
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Attack,1,"rbf, C=0.693, gamma=0.398, balanced, robust scaling",-0.26
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Attack,2,"linear, C=0.759, balanced, standard scaling",-0.77
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Attack,3,"rbf, C=0.7, gamma=0.201, balanced, robust scaling",-0.496
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Attack,4,"rbf, C=0.7, gamma=0.201, balanced, robust scaling",-0.308
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Attack,5,"rbf, C=0.00366, gamma=0.00424, standard scaling",0.999
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Identification,1,"rbf, C=1.72, gamma=0.0289, balanced, robust scaling",-0.003
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Identification,2,"linear, C=1.2, quantile scaling",-0.176
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Identification,3,"rbf, C=1.72, gamma=0.0289, balanced, robust scaling",-0.335
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Identification,4,"rbf, C=18.2, gamma=0.00036, quantile scaling",-0.072
+"J. random search (150), PR-AUC + tuned cutoff",student,Word Identification,5,"linear, C=1.2, quantile scaling",-0.119
