@@ -1,0 +1,49 @@
+target,setting,depth,Train accuracy,Test accuracy,Test ROC AUC,Test PR-AUC,Actual depth,Leaves,Gap (train - test)
+Word Identification,No leaf limit (min 1 per leaf),2,0.667,0.646,0.653,0.639,2.0,4.0,0.021
+Word Identification,No leaf limit (min 1 per leaf),3,0.691,0.646,0.635,0.627,3.0,8.0,0.045
+Word Identification,No leaf limit (min 1 per leaf),4,0.704,0.637,0.623,0.619,4.0,14.4,0.067
+Word Identification,No leaf limit (min 1 per leaf),5,0.742,0.61,0.604,0.602,5.0,24.4,0.132
+Word Identification,No leaf limit (min 1 per leaf),6,0.772,0.586,0.592,0.596,6.0,35.6,0.186
+Word Identification,No leaf limit (min 1 per leaf),7,0.817,0.586,0.585,0.585,7.0,48.4,0.231
+Word Identification,No leaf limit (min 1 per leaf),8,0.853,0.598,0.599,0.599,8.0,61.2,0.255
+Word Identification,No leaf limit (min 1 per leaf),10,0.926,0.572,0.578,0.587,10.0,90.4,0.354
+Word Identification,No leaf limit (min 1 per leaf),12,0.98,0.565,0.566,0.582,12.0,112.4,0.415
+Word Identification,No leaf limit (min 1 per leaf),15,0.999,0.571,0.566,0.579,14.0,120.2,0.428
+Word Identification,No leaf limit (min 1 per leaf),20,1.0,0.565,0.563,0.578,14.6,121.4,0.435
+Word Identification,No leaf limit (min 1 per leaf),unlimited,1.0,0.565,0.563,0.578,14.6,121.4,0.435
+Word Identification,Leaf limit (min 20 per leaf),2,0.665,0.65,0.662,0.646,2.0,4.0,0.015
+Word Identification,Leaf limit (min 20 per leaf),3,0.683,0.644,0.656,0.643,3.0,7.6,0.039
+Word Identification,Leaf limit (min 20 per leaf),4,0.694,0.643,0.647,0.654,4.0,11.8,0.051
+Word Identification,Leaf limit (min 20 per leaf),5,0.705,0.632,0.639,0.649,5.0,15.2,0.073
+Word Identification,Leaf limit (min 20 per leaf),6,0.718,0.61,0.632,0.649,6.0,18.8,0.108
+Word Identification,Leaf limit (min 20 per leaf),7,0.724,0.606,0.633,0.66,7.0,21.0,0.118
+Word Identification,Leaf limit (min 20 per leaf),8,0.726,0.614,0.635,0.655,7.6,21.6,0.112
+Word Identification,Leaf limit (min 20 per leaf),10,0.726,0.614,0.638,0.664,7.8,21.8,0.112
+Word Identification,Leaf limit (min 20 per leaf),12,0.726,0.614,0.638,0.664,7.8,21.8,0.112
+Word Identification,Leaf limit (min 20 per leaf),15,0.726,0.614,0.638,0.664,7.8,21.8,0.112
+Word Identification,Leaf limit (min 20 per leaf),20,0.726,0.614,0.638,0.664,7.8,21.8,0.112
+Word Identification,Leaf limit (min 20 per leaf),unlimited,0.726,0.614,0.638,0.664,7.8,21.8,0.112
+Word Attack,No leaf limit (min 1 per leaf),2,0.636,0.558,0.528,0.603,2.0,4.0,0.078
+Word Attack,No leaf limit (min 1 per leaf),3,0.664,0.589,0.57,0.629,3.0,7.8,0.075
+Word Attack,No leaf limit (min 1 per leaf),4,0.699,0.584,0.552,0.621,4.0,13.8,0.115
+Word Attack,No leaf limit (min 1 per leaf),5,0.734,0.569,0.56,0.635,5.0,22.6,0.165
+Word Attack,No leaf limit (min 1 per leaf),6,0.78,0.554,0.547,0.618,6.0,33.8,0.226
+Word Attack,No leaf limit (min 1 per leaf),7,0.815,0.547,0.531,0.611,7.0,48.0,0.268
+Word Attack,No leaf limit (min 1 per leaf),8,0.853,0.518,0.514,0.596,8.0,63.2,0.335
+Word Attack,No leaf limit (min 1 per leaf),10,0.93,0.528,0.514,0.597,10.0,94.2,0.402
+Word Attack,No leaf limit (min 1 per leaf),12,0.971,0.54,0.527,0.6,12.0,114.6,0.431
+Word Attack,No leaf limit (min 1 per leaf),15,0.992,0.528,0.509,0.594,14.8,127.6,0.464
+Word Attack,No leaf limit (min 1 per leaf),20,1.0,0.523,0.505,0.593,16.4,130.4,0.477
+Word Attack,No leaf limit (min 1 per leaf),unlimited,1.0,0.523,0.505,0.593,16.4,130.4,0.477
+Word Attack,Leaf limit (min 20 per leaf),2,0.631,0.544,0.519,0.6,2.0,3.8,0.087
+Word Attack,Leaf limit (min 20 per leaf),3,0.656,0.579,0.561,0.63,3.0,7.0,0.077
+Word Attack,Leaf limit (min 20 per leaf),4,0.675,0.572,0.577,0.637,4.0,10.8,0.103
+Word Attack,Leaf limit (min 20 per leaf),5,0.688,0.578,0.573,0.634,5.0,14.6,0.11
+Word Attack,Leaf limit (min 20 per leaf),6,0.701,0.575,0.583,0.651,6.0,17.6,0.126
+Word Attack,Leaf limit (min 20 per leaf),7,0.704,0.582,0.573,0.641,6.6,19.0,0.122
+Word Attack,Leaf limit (min 20 per leaf),8,0.706,0.581,0.573,0.639,7.0,19.8,0.125
+Word Attack,Leaf limit (min 20 per leaf),10,0.708,0.584,0.578,0.645,7.6,20.6,0.124
+Word Attack,Leaf limit (min 20 per leaf),12,0.708,0.584,0.578,0.645,7.6,20.6,0.124
+Word Attack,Leaf limit (min 20 per leaf),15,0.708,0.584,0.578,0.645,7.6,20.6,0.124
+Word Attack,Leaf limit (min 20 per leaf),20,0.708,0.584,0.578,0.645,7.6,20.6,0.124
+Word Attack,Leaf limit (min 20 per leaf),unlimited,0.708,0.584,0.578,0.645,7.6,20.6,0.124
