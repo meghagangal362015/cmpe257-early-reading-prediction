@@ -56,7 +56,7 @@ Students are grouped by school. The models use five-fold cross-validation groupe
 
 The paper-aligned experiments compare:
 
-- Logistic Regression and Decision Tree baseline models
+- Baseline models: Logistic Regression, Linear Regression, Decision Tree and Decision Tree Regressor
 - Random Forest
 - XGBoost
 - Multi-Layer Perceptron (MLP)
@@ -70,6 +70,8 @@ Additional extension experiments include:
 - Feature-group ablation
 - Feature-importance analysis
 - k-nearest neighbours (raw features and MaskMLP embeddings)
+- Lasso (L1) and Ridge (L2) Logistic Regression, and SVM
+- Multicollinearity check and t-SNE visualisation of the data
 
 The Random Forest and XGBoost paper-aligned experiments use five-fold cross-validation grouped by school. Gaussian Naive Bayes was added as an extension model using the same evaluation setup.
 
@@ -90,6 +92,45 @@ The main evaluation metrics are:
 The paper's tables label a metric "AUC"; its values equal balanced accuracy, so the neural-network section uses balanced accuracy when comparing with the paper (see `reports/Supriya_Neural_Network_REPORT.md`, Section 3.1).
 
 The paper-aligned experiments do not use a fixed 70/15/15 train-validation-test split. Unlabeled students may be used for MaskMLP pretraining, while supervised models use labeled students only.
+
+## Baseline Models
+
+The baseline models use the same 706 students, 16 features and five-fold cross-validation grouped by school as the models above. Each model's settings (for example tree depth or regularisation strength) are chosen inside the training folds only.
+
+- **Classifiers** predict the high/low growth label directly.
+- **Regressors** (Linear Regression, Decision Tree Regressor) predict the reading score gain, which is then turned into a label by comparing it with the control group's average gain.
+
+School-grouped split, mean over 5 folds:
+
+| Model | Word ID Accuracy | Word ID PR-AUC | Word Attack Accuracy | Word Attack PR-AUC |
+|---|---:|---:|---:|---:|
+| Logistic Regression | 0.640 | 0.683 | 0.611 | 0.694 |
+| Linear Regression | 0.644 | 0.686 | 0.604 | 0.703 |
+| Decision Tree | 0.636 | 0.649 | 0.558 | 0.624 |
+| Decision Tree Regressor | 0.646 | 0.641 | 0.585 | 0.619 |
+| Lasso (L1) Logistic Regression | 0.640 | 0.692 | 0.606 | 0.686 |
+| Ridge (L2) Logistic Regression | 0.637 | 0.683 | 0.613 | 0.693 |
+| SVM | 0.639 | 0.685 | 0.581 | 0.661 |
+
+What we found:
+
+- **Simple linear models do as well as anything else.** Logistic and Linear Regression score about the same as Random Forest and XGBoost; Lasso, Ridge and SVM do not improve on them.
+- **Decision trees are the weakest**, especially for Word Attack.
+- **No multicollinearity problem:** every feature has a VIF below 3.5, so the coefficients can be read safely.
+- **The data itself sets the limit.** In a t-SNE picture, high- and low-growth students are mixed together: only 55% of a student's 10 most similar students share their label, against 50% by chance. This explains why every model stays around ROC AUC 0.67.
+
+Notebooks (`notebooks/anupama_*.ipynb`):
+
+| Notebook | What it does |
+|---|---|
+| `anupama_data_collinearity` | Data check, correlation matrix and VIF |
+| `anupama_logistic_regression_cv`, `anupama_linear_regression_cv` | Linear baselines |
+| `anupama_decision_tree_cv`, `anupama_decision_tree_regressor_cv` | Tree baselines |
+| `anupama_lasso_logistic_regression_cv`, `anupama_ridge_logistic_regression_cv`, `anupama_svm_cv` | Extension models |
+| `anupama_baseline_evaluation` | Compares all baselines: accuracy, precision, recall, ROC AUC, PR-AUC, error metrics, ROC and precision-recall curves |
+| `anupama_tsne` | t-SNE picture of the data |
+
+Main results: `results/baseline_models_cv_summary.csv`, `results/baseline_roc_curves.png`, `results/baseline_precision_recall_curves.png`.
 
 ## Paper-Aligned Results
 
@@ -160,6 +201,7 @@ Naive Bayes results are available in:
 - Random Forest performed best for Word Identification.
 - XGBoost performed best for Word Attack.
 - Naive Bayes worked successfully but did not improve the results.
+- Simple baselines (Logistic and Linear Regression) performed about as well as the more complex models.
 - The neural networks (MLPs and MaskMLP) did not outperform the traditional models on the same folds, and MaskMLP's reported advantage over the plain MLPs was not reproduced.
 - Tree-based models were better suited to the relationships among the reading features.
 - Model performance varied across school-based folds.
@@ -262,6 +304,7 @@ Main neural-network findings:
 - Our traditional models are within about 0.02 accuracy of the paper's Table 1, while our neural models are about 0.08 below it. Choosing each neural model's epoch on the test fold (a diagnostic that uses test labels) closes most of that gap, which points to checkpoint selection as the main difference.
 - Cosine pretraining caused embedding collapse in all 22 cosine runs. Two collapse-resistant losses avoided the collapse, and shorter pretraining slowed it, but neither made MaskMLP better than the plain MLPs.
 - Pretraining only on training students gave about the same MaskMLP accuracy (0.585) as pretraining on all students (0.583).
+- MaskMLP did not become the best model with missing inputs, missing tests or scarce labels either (see the robustness extension below).
 - The paper's reported AUC values are reproduced exactly as balanced accuracy.
 - The start-of-year score on the same skill is the most important input for XGBoost on both tasks.
 
@@ -303,6 +346,36 @@ kNN results are available in:
 - `results/knn_extension/comparison.csv` and `results/knn_extension/knn_comparison.png` (kNN next to the six models of `results/neural_network/main`)
 - `results/knn_extension/config.json`
 
+## Extension: Robustness to Missing Data and Scarce Labels
+
+MaskMLP is designed for incomplete records and unlabelled students, so this extension tests it in exactly those situations, beyond the paper's benchmark:
+
+- **Values missing at test time:** 10–50 % of each test student's known inputs hidden at random.
+- **Whole tests missing:** every score from 1 or 2 of the four start-of-year tests hidden, as when a child is absent on a test day.
+- **Scarce labels:** fine-tuning on only 10–100 % of the labelled students, while pretraining still uses all 6,916.
+
+Every model sees exactly the same hidden values and label subsets, all settings are fixed in advance, and results are averaged over 3 seeds, both splits, both targets and 5 folds. Besides the six main models, it tests MaskMLP with the triplet loss and three fine-tuning variants (masked fine-tuning, a frozen encoder, a lower encoder learning rate), plus a control MLP (Mean) trained on the same hidden inputs.
+
+Balanced accuracy, all students (0.50 = chance):
+
+| Scenario | Logistic Regression | XGBoost | MLP (Mean) | MaskMLP | Best MaskMLP variant |
+|---|---:|---:|---:|---:|---:|
+| Complete data | 0.593 | 0.589 | 0.574 | 0.556 | 0.556 |
+| 50 % of values hidden | 0.524 | 0.526 | 0.538 | 0.506 | 0.513 |
+| 2 tests missing | 0.565 | 0.535 | 0.553 | 0.504 | 0.512 |
+| 10 % of labels | 0.556 | 0.545 | 0.505 | 0.501 | 0.504 |
+
+No MaskMLP version is the best model in any scenario. The plain MLP with mean filling degrades least as values go missing, and Logistic Regression copes best with missing tests and scarce labels. The fine-tuning variants stay near chance because they rely on the collapsed pretrained encoder. Balanced accuracy is used because a model predicting "progress" for everyone keeps about 0.55 plain accuracy here.
+
+The extension was run on Google Colab with section 7 of the notebook. Details are in the report, Section 10.
+
+Robustness results are available in:
+
+- `results/robustness_extension/results.csv` (every model, condition, seed and fold)
+- `results/robustness_extension/summary.csv` and `results/robustness_extension/verdict.csv` (MaskMLP's margin over the best plain MLP and the best traditional model in each condition)
+- `results/robustness_extension/missing_at_test.png`, `missing_tests.png` and `label_fraction.png`
+- `results/robustness_extension/config.json`
+
 ## Neural Network Files and Outputs
 
 | File | Purpose |
@@ -310,11 +383,13 @@ kNN results are available in:
 | `notebooks/Supriya_Neural_network_implementation.py` | Experiments: models, cross-validation, analyses, figures |
 | `notebooks/Supriya_Neural_network_report.py` | Paper comparison, sensitivity, robustness and collapse tables. It imports constants and plotting helpers from `Supriya_Neural_network_implementation.py`, so keep both scripts in the same folder. |
 | `notebooks/Supriya_kNN_extension.py` | Exploratory extension, not in the paper: k-nearest neighbours on the same folds. It imports from `Supriya_Neural_network_implementation.py` and changes nothing in it. |
-| `notebooks/Supriya_Neural_Network.ipynb` | The Colab notebook all reported runs, the kNN extension and the report tables were made with |
+| `notebooks/Supriya_robustness_extension.py` | Extension, not in the paper: MaskMLP with missing inputs, missing tests and scarce labels. It imports from `Supriya_Neural_network_implementation.py` and changes nothing in it. |
+| `notebooks/Supriya_Neural_Network.ipynb` | The Colab notebook the 28 runs, the kNN extension, the robustness extension and the report tables were made with |
 | `reports/Supriya_Neural_Network_REPORT.md` | Results, methodological checks and conclusions |
 | `requirements.txt` | Python dependencies (minimum versions) |
 | `results/neural_network/` | The experimental evidence behind the report (see below) |
 | `results/knn_extension/` | kNN extension results (see Extension: k-Nearest Neighbours) |
+| `results/robustness_extension/` | Robustness extension results (see Extension: Robustness to Missing Data and Scarce Labels) |
 
 The repository keeps the outputs behind every number in the report. For each of the 28 runs in `results/neural_network/` it keeps:
 
@@ -332,7 +407,7 @@ Also kept:
 - `results/neural_network/main/figures/`
 - `results/neural_network/report/`, the consolidated tables and charts
 
-Left out of Git to keep the repository small (about 9 MB of outputs, 197 files, are tracked):
+Left out of Git to keep the repository small (about 12 MB of outputs, 204 files, are tracked):
 
 - the per-student `predictions.csv` and `folds.csv` files (about 68 MB)
 - the per-run figure copies in the other run folders (about 29 MB)
@@ -364,6 +439,9 @@ python notebooks/Supriya_kNN_extension.py --raw-dataset data/ECRIRawData.csv
 
 # Rebuild only the kNN comparison table and figure from saved kNN results (no retraining)
 python notebooks/Supriya_kNN_extension.py --compare-only
+
+# Extension: missing inputs, missing tests and scarce labels (3 seeds)
+python notebooks/Supriya_robustness_extension.py --raw-dataset data/ECRIRawData.csv
 ```
 
 The commands for the seed, scope, evaluation-row, collapse-investigation, pretraining-length and checkpoint-selection runs are listed in the report, Section 8. Run `python notebooks/Supriya_Neural_network_implementation.py --help` for all options.
@@ -374,7 +452,7 @@ On Windows, keep the folder path short, because paths over 260 characters make f
 
 | Team Member | Responsibility |
 |---|---|
-| Anupama Singh | Baseline models using Linear Regression and Decision Tree |
+| Anupama Singh | Baseline models (Logistic Regression, Linear Regression, Decision Tree, Decision Tree Regressor); extensions (Lasso, Ridge, SVM); multicollinearity check, model evaluation and t-SNE |
 | Megha Gangal | Random Forest, XGBoost, Gaussian Naive Bayes, hyperparameter tuning, feature ablation, and feature-importance analysis |
 | Supriya Kavitha Venkatesan | MLP (Zeros, Mean, Indicator) and MaskMLP reimplementation: masked self-supervised pretraining on all 6,916 students with the cosine loss, then fine-tuning; school- and student-grouped evaluation on the paper's 936 students per target, compared with Logistic Regression and XGBoost on the same folds and with the paper's Table 1; progress-quintile, t-SNE, feature-importance and loss-ablation analyses; checks of the paper's AUC metric, pretraining scope, evaluation rows, embedding collapse and checkpoint selection; kNN extension |
 

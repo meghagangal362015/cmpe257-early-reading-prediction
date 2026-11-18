@@ -1,0 +1,66 @@
+{
+  "dataset": "ECRIDataSet.csv",
+  "raw_dataset": "ECRIRawData.csv",
+  "output_dir": "robustness_extension",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "groups": [
+    "school",
+    "student"
+  ],
+  "targets": [
+    "RMwidRS_target",
+    "RMwdaRS_target"
+  ],
+  "models": [
+    "LogisticRegression",
+    "XGBoost",
+    "MLP_zero",
+    "MLP_mean",
+    "MLP_indicator",
+    "MLP_mean_maskft",
+    "MaskMLP",
+    "MaskMLP_triplet",
+    "MaskMLP_maskft",
+    "MaskMLP_frozen",
+    "MaskMLP_lowlr"
+  ],
+  "mask_rates": [
+    0.0,
+    0.1,
+    0.25,
+    0.4,
+    0.5
+  ],
+  "tests_missing": [
+    1,
+    2
+  ],
+  "label_fractions": [
+    0.1,
+    0.25,
+    0.5,
+    1.0
+  ],
+  "eval_rows": "assessments",
+  "pretrain_scope": "all",
+  "pretrain_loss": "cosine",
+  "pretrain_epochs": 100,
+  "epochs": 100,
+  "patience": 15,
+  "hidden_size": 64,
+  "layers": 3,
+  "batch_size": 64,
+  "learning_rate": 0.001,
+  "mask_rate": 0.25,
+  "mask_mode": "exact",
+  "contrastive_margin": 0.0,
+  "triplet_margin": 1.0,
+  "collapse_ratio": 0.1,
+  "cpu": false,
+  "select_on_test": false,
+  "pretrain_pool_size": 6916
+}
