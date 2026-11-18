@@ -1,0 +1,41 @@
+split,target,variant,Accuracy,Balanced acc.,ROC AUC,PR-AUC
+school,Word Attack,A. tiny grid (2 settings),0.582,0.529,0.588,0.662
+school,Word Attack,B. small grid (4 settings),0.591,0.548,0.583,0.661
+school,Word Attack,C. original grid (7 settings),0.591,0.548,0.583,0.661
+school,Word Attack,D. small RBF grid (9 settings),0.586,0.549,0.604,0.67
+school,Word Attack,"E. medium grid (24 settings, now used)",0.585,0.55,0.593,0.658
+school,Word Attack,F. medium grid + class weights (48 settings),0.558,0.543,0.582,0.659
+school,Word Attack,G. wider grid (102 settings),0.567,0.546,0.581,0.662
+school,Word Attack,"H. random search (150), pick by ROC AUC",0.528,0.521,0.554,0.643
+school,Word Attack,"I. random search (150), pick by PR-AUC",0.542,0.527,0.568,0.663
+school,Word Attack,"J. random search (150), PR-AUC + tuned cutoff",0.564,0.518,0.568,0.663
+school,Word Identification,A. tiny grid (2 settings),0.632,0.625,0.671,0.695
+school,Word Identification,B. small grid (4 settings),0.63,0.624,0.667,0.691
+school,Word Identification,C. original grid (7 settings),0.637,0.63,0.666,0.686
+school,Word Identification,D. small RBF grid (9 settings),0.637,0.627,0.684,0.697
+school,Word Identification,"E. medium grid (24 settings, now used)",0.637,0.627,0.684,0.697
+school,Word Identification,F. medium grid + class weights (48 settings),0.637,0.627,0.684,0.697
+school,Word Identification,G. wider grid (102 settings),0.644,0.637,0.682,0.694
+school,Word Identification,"H. random search (150), pick by ROC AUC",0.643,0.633,0.687,0.709
+school,Word Identification,"I. random search (150), pick by PR-AUC",0.642,0.634,0.68,0.703
+school,Word Identification,"J. random search (150), PR-AUC + tuned cutoff",0.644,0.633,0.68,0.703
+student,Word Attack,A. tiny grid (2 settings),0.603,0.557,0.612,0.687
+student,Word Attack,B. small grid (4 settings),0.606,0.563,0.612,0.687
+student,Word Attack,C. original grid (7 settings),0.594,0.541,0.613,0.686
+student,Word Attack,D. small RBF grid (9 settings),0.602,0.543,0.632,0.702
+student,Word Attack,"E. medium grid (24 settings, now used)",0.605,0.549,0.626,0.697
+student,Word Attack,F. medium grid + class weights (48 settings),0.596,0.585,0.616,0.69
+student,Word Attack,G. wider grid (102 settings),0.599,0.59,0.617,0.691
+student,Word Attack,"H. random search (150), pick by ROC AUC",0.567,0.558,0.603,0.69
+student,Word Attack,"I. random search (150), pick by PR-AUC",0.585,0.561,0.614,0.701
+student,Word Attack,"J. random search (150), PR-AUC + tuned cutoff",0.609,0.56,0.614,0.701
+student,Word Identification,A. tiny grid (2 settings),0.635,0.633,0.69,0.712
+student,Word Identification,B. small grid (4 settings),0.635,0.633,0.69,0.712
+student,Word Identification,C. original grid (7 settings),0.635,0.633,0.69,0.712
+student,Word Identification,D. small RBF grid (9 settings),0.652,0.65,0.7,0.721
+student,Word Identification,"E. medium grid (24 settings, now used)",0.652,0.65,0.7,0.721
+student,Word Identification,F. medium grid + class weights (48 settings),0.642,0.641,0.699,0.72
+student,Word Identification,G. wider grid (102 settings),0.646,0.643,0.696,0.717
+student,Word Identification,"H. random search (150), pick by ROC AUC",0.639,0.638,0.685,0.698
+student,Word Identification,"I. random search (150), pick by PR-AUC",0.635,0.632,0.673,0.695
+student,Word Identification,"J. random search (150), PR-AUC + tuned cutoff",0.64,0.627,0.673,0.695

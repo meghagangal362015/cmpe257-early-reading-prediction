@@ -11,8 +11,8 @@ Word Identification,Anupama (baselines),Lasso Logistic Regression,0.675,0.692,0.
 Word Attack,Anupama (baselines),Lasso Logistic Regression,0.609,0.687,0.606
 Word Identification,Anupama (baselines),Ridge Logistic Regression,0.671,0.683,0.637
 Word Attack,Anupama (baselines),Ridge Logistic Regression,0.615,0.693,0.613
-Word Identification,Anupama (baselines),SVM,0.666,0.685,0.639
-Word Attack,Anupama (baselines),SVM,0.583,0.661,0.581
+Word Identification,Anupama (baselines),SVM,0.684,0.697,0.637
+Word Attack,Anupama (baselines),SVM,0.593,0.658,0.585
 Word Identification,Paper (Table 1),Logistic Regression,0.612,,0.612
 Word Attack,Paper (Table 1),Logistic Regression,0.559,,0.592
 Word Attack,Megha,Random Forest,,0.669,0.586
