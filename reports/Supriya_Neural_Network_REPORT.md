@@ -19,7 +19,7 @@ Reimplementation of the neural-network part of Shangguan et al., *Scalable Early
 
 It is run with 5 seeds (42–46). Every other setting is a separate sensitivity or investigation run and is labelled as such.
 
-**Where the numbers come from:** every number in this report is computed from the 28 runs in `results/neural_network/`, which were produced on Google Colab's CPU runtime with `notebooks/Supriya_Neural_Network.ipynb` (setup in `README.md`).
+**Where the numbers come from:** every number in this report is computed from the 28 runs in `results/neural_network/`, the kNN run in `results/knn_extension/` and the robustness run in `results/robustness_extension/`, all produced on Google Colab's CPU runtime with `notebooks/Supriya_Neural_Network.ipynb` (setup in `README.md`).
 
 ---
 
@@ -48,6 +48,7 @@ It is run with 5 seeds (42–46). Every other setting is a separate sensitivity 
 - **Pretraining on training groups only gives about the same result as pretraining on all students.** MaskMLP accuracy was 0.583 with all students and 0.585 with training groups only, over 5 seeds each; the difference is smaller than the seed-to-seed spread.
   - The default follows the paper and is transductive: unlabelled test-student inputs are seen during pretraining.
   - The training-only runs are therefore the stronger evidence about generalisation to unseen students.
+- **MaskMLP does not help where it was designed to help either (Section 10).** With test inputs or whole tests missing, or with only 10–25 % of the labels, no MaskMLP version is the best model, and fine-tuning fixes (masked fine-tuning, a frozen encoder, a lower encoder learning rate) leave it near chance. The plain MLP with mean filling copes best with missing values, and logistic regression with missing tests and scarce labels.
 - **Several secondary findings do reproduce:**
   - The start-of-year score on the same skill is the most important input for XGBoost on both tasks, and for MaskMLP on word identification.
   - Accuracy is higher for students who improved than for those who regressed.
@@ -259,9 +260,10 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 **Differs from the paper (under our implementation):**
 - MaskMLP does not outperform the plain MLPs. With the paper's loss it is slightly below them.
 - Neural models do not outperform traditional ML. On all students, logistic regression is best: 0.017 accuracy above the best neural model (MLP Mean) and 0.026 above MaskMLP. XGBoost is second. In the intervention group, both traditional models are also ahead of every neural model.
+- MaskMLP does not show an advantage with missing inputs, missing tests or scarce labels, the situations it was designed for (Section 10).
 - Cosine pretraining caused embedding collapse in our implementation, and avoiding it did not improve MaskMLP. Our results are therefore not consistent with the paper's t-SNE reading of "well-defined clusters", although the paper's own training setup may have avoided the collapse.
 
-**Overall:** MaskMLP's reported advantage was not reproduced under our documented training and evaluation choices on the released data. Under those choices, neither MaskMLP nor the plain MLPs outperformed traditional ML, and logistic regression is the most accurate model. The paper's neural results are about 0.08 accuracy higher than ours, while its traditional baselines reproduce within about 0.02. That points to a difference in the neural training or evaluation procedure. The checkpoint-selection diagnostic closes most of that gap, which makes it the most likely explanation, but we cannot confirm what the authors did.
+**Overall:** MaskMLP's reported advantage was not reproduced under our documented training and evaluation choices on the released data. Under those choices, neither MaskMLP nor the plain MLPs outperformed traditional ML, and logistic regression is the most accurate model. The paper's neural results are about 0.08 accuracy higher than ours, while its traditional baselines reproduce within about 0.02. That points to a difference in the neural training or evaluation procedure. The checkpoint-selection diagnostic closes most of that gap, which makes it the most likely explanation, but we cannot confirm what the authors did. Testing MaskMLP in the situations it was designed for (Section 10) did not reveal an advantage either.
 
 ## 7. Limitations
 
@@ -272,6 +274,7 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 - The neural models train on 80 % of each training fold (the rest is used for early stopping), while the traditional models use the whole fold (Section 4).
 - Results depend slightly on the software environment and settings. An earlier local run of an earlier version of the code (all 946 rows, per-feature random masking) with older package versions (Python 3.9.12, scikit-learn 1.0.2, torch 1.13.0, xgboost 1.7.1) gave accuracies within about 0.015 of those reported here and the same main conclusions.
 - The kNN extension (Section 9) is exploratory and single-seed (seed 42), so it is compared with the seed-42 main run only.
+- The robustness extension (Section 10) uses 3 seeds rather than 5. Its hidden values are chosen at random, and real missingness may follow other patterns.
 - TabNet, GRAPE, VIME, SCARF and LightGBM are out of scope for this member.
 - Subgroup bias analysis (Table 2) is out of scope for this member.
 
@@ -290,6 +293,7 @@ MaskMLP is level with or slightly below the plain MLPs. Logistic regression beat
 | `results/neural_network/diagnostic_test_selection` | Diagnostic only: epochs chosen on the test fold (Section 3.5) | 42 |
 | `results/neural_network/report` | Paper comparison, sensitivity, robustness and collapse tables | — |
 | `results/knn_extension` | Extension, not in the paper: kNN on the seed-42 folds, compared with `results/neural_network/main` (Section 9) | 42 |
+| `results/robustness_extension` | Extension, not in the paper: missing values, missing tests and scarce labels (Section 10) | 42–44 |
 
 Section 5 of `notebooks/Supriya_Neural_Network.ipynb` runs all 28 runs. The files kept in each folder, the data, the environment and the commands for the main run, the report tables and kNN are in the "Neural Network Files and Outputs" and "Running the Neural Network Experiments" sections of `README.md`. The commands below reproduce the additional runs:
 
@@ -343,3 +347,37 @@ python notebooks/Supriya_Neural_network_implementation.py --dataset data/ECRIDat
 **Findings:**
 - **kNN on the raw features is the weakest of the models trained on those features on all students.** It ranks 7th of 8, 0.037 below logistic regression and 0.007 below MaskMLP. In the intervention group it does slightly better (0.624), above MaskMLP (0.617) and level with MLP (Indicator) (0.623). With 16 features and only about 750 training students per fold, a student's nearest neighbours are not much more similar to them than students further away. kNN also leans towards predicting improvement (sensitivity 0.75, specificity 0.34).
 - **kNN on MaskMLP's pretrained embeddings is at chance** (balanced accuracy 0.504). This is independent evidence for the collapse in Section 3.4: in this run the encoder's embedding spread fell from about 0.038 to 0.000003–0.00002, so the embeddings no longer separate students and their neighbours carry no information about the outcome. MaskMLP still reaches 0.579 after fine-tuning, which supports the reading that fine-tuning, not pretraining, does the work.
+
+## 10. Extension: robustness to missing data and scarce labels (not in the paper)
+
+**Why.** MaskMLP is motivated by incomplete records and unlabelled students, but the paper's benchmark, and our reproduction of it, evaluates students who have all eight reading assessments, with about 600–750 labelled students per training fold. This extension tests MaskMLP in the situations it was designed for, to see whether its advantage appears there.
+
+**Setup** (`notebooks/Supriya_robustness_extension.py`, section 7 of `notebooks/Supriya_Neural_Network.ipynb`; results in `results/robustness_extension/`):
+- **Experiment A, values missing at test time.** Models are trained as usual; then 10, 25, 40 or 50 % of each test student's known inputs are hidden at random before prediction.
+- **Experiment B, scarce labels.** Pretraining still uses all 6,916 students without labels, but fine-tuning uses only 10, 25, 50 or 100 % of each fold's labelled training and validation students.
+- **Experiment C, whole tests missing at test time.** As when a child is absent on a test day, every score from 1 or 2 of the four start-of-year tests (WRMT, DIBELS NWF, ORF, SAT) is hidden for each test student.
+- Hidden values, hidden tests and label subsets are drawn once per seed and fold, so every model sees exactly the same data, and they are nested across levels.
+- **Models.** The six models of the main comparison; MaskMLP_triplet (pretrained with the triplet loss, one of the paper's Table 4 losses, because cosine collapses); three of our MaskMLP variants that change only fine-tuning: masked fine-tuning (25 % of inputs hidden in every fine-tuning batch), a frozen encoder, and a 10× smaller encoder learning rate; and a control, MLP (Mean) trained with the same hidden-input batches, to separate the effect of pretraining from that of training on incomplete inputs.
+- All settings are the main script's defaults, fixed before any test result was seen. 3 seeds (42–44) × 2 splits × 2 targets × 5 folds = 60 units per condition. Run on Google Colab's CPU runtime, like the rest of the report; on complete data the six reference models match Section 5 closely (accuracy 0.587–0.609 here, 0.583–0.609 there).
+
+**The verdict uses balanced accuracy.** About 55 % of students make sufficient progress, so a model that predicts "progress" for everyone keeps about 0.55 plain accuracy however much input is hidden. The frozen, low-learning-rate and masked-fine-tuning variants nearly do that: on complete data they catch 96–98 % of the students who progress but only 2–5 % of those who do not. Their plain accuracy (about 0.55) therefore looks stable, while their balanced accuracy is 0.50–0.51, chance. Plain MaskMLP drifts the same way as inputs disappear (0.529 accuracy but 0.506 balanced accuracy with half the inputs hidden).
+
+**Results** (balanced accuracy, all students; 0.50 = chance):
+
+| Scenario | Log. reg. | XGBoost | MLP (Mean) | MLP (Mean), masked training | MaskMLP | MaskMLP, masked fine-tuning | Frozen encoder | Low encoder LR |
+|---|---|---|---|---|---|---|---|---|
+| Complete data | **0.593** | 0.589 | 0.574 | 0.564 | 0.556 | 0.506 | 0.500 | 0.505 |
+| 25 % of values hidden | 0.549 | 0.547 | **0.551** | 0.549 | 0.511 | 0.508 | 0.499 | 0.503 |
+| 50 % of values hidden | 0.524 | 0.526 | **0.538** | 0.536 | 0.506 | 0.513 | 0.499 | 0.502 |
+| 1 test missing | **0.578** | 0.558 | 0.562 | 0.551 | 0.510 | 0.506 | 0.500 | 0.501 |
+| 2 tests missing | **0.565** | 0.535 | 0.553 | 0.541 | 0.504 | 0.506 | 0.499 | 0.499 |
+| 10 % of labels | **0.556** | 0.545 | 0.505 | 0.503 | 0.501 | 0.500 | 0.500 | 0.500 |
+| 25 % of labels | **0.573** | 0.557 | 0.518 | 0.519 | 0.505 | 0.499 | 0.501 | 0.501 |
+
+**Findings:**
+- **No MaskMLP version is the best model in any scenario.** Across all 22 condition and subset combinations, every MaskMLP version is below the best traditional model (by at least 0.013). Against the best plain MLP it is level at best: the triplet variant is 0.001 ahead with 25 % of the labels in the intervention group, and behind in every other combination. Its best rank among the six reference models is 3rd (`verdict.csv`).
+- **Missing values:** the plain MLP with mean filling degrades least. With half of each student's inputs hidden it loses 0.036 balanced accuracy, against 0.063–0.069 for logistic regression and XGBoost, and from 25 % hidden it is the best model on all students; MaskMLP falls to near chance.
+- **Missing whole tests:** logistic regression, with mean filling and missing-value flags, stays best on all students (0.578 and 0.565).
+- **Scarce labels:** logistic regression degrades least. Every neural model, MaskMLP included, is close to chance with 10 % of the labels, so pretraining on 6,916 unlabelled students does not compensate for the missing labels.
+- **Fine-tuning fixes make MaskMLP worse, not better.** The more a variant relies on the pretrained encoder (frozen, low learning rate), the closer it stays to chance. The control MLP (Mean) with masked training is far better than masked-fine-tuned MaskMLP (0.564 vs 0.506 on complete data), so training on incomplete inputs is not the problem; the collapsed encoder is (Section 3.4; kNN on the same embeddings is also at chance, Section 9).
+- **Interpretation.** In the situations MaskMLP was designed for, our implementation does not show the advantage either. This is consistent with the collapse: the cosine-pretrained encoder carries almost no information about students, so it cannot help when data or labels are scarce. It does not rule out that the authors' unreported training settings avoid the collapse.
