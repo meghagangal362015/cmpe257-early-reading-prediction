@@ -212,6 +212,29 @@ svg.lc{width:100%;height:auto;display:block}
 .health{display:grid;grid-template-columns:minmax(0,250px) minmax(0,1fr);gap:12px}
 @media (max-width:760px){.health{grid-template-columns:minmax(0,1fr)}}
 .tiles.sm .tile .v{font-size:19px}
+.thr-sm .ctl{max-width:360px!important}
+.thr-sm .lbl{font-size:11px}
+.thr-sm .lbl b{font-size:13px!important}
+.thr-sm button{padding:2px 8px;font-size:12px}
+.thr-sm .hint2,.thr-sm .hint{font-size:11px}
+.tl-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);gap:12px;align-items:start}
+@media (max-width:900px){.tl-row{grid-template-columns:1fr}}
+#mg-tiles,#gs-tiles,#tl-tiles{grid-template-columns:repeat(auto-fit,minmax(110px,160px));gap:8px}
+#mg-tiles .tile,#gs-tiles .tile,#tl-tiles .tile{padding:6px 10px}
+#mg-tiles .tile .v,#gs-tiles .tile .v,#tl-tiles .tile .v{font-size:16px}
+#mg-tiles .tile .k,#gs-tiles .tile .k,#tl-tiles .tile .k,#gs-tiles .tile .s,#tl-tiles .tile .s{font-size:11px}
+#gs .ctl.wide{max-width:440px!important}
+.tiles.top{grid-template-columns:repeat(auto-fit,minmax(150px,190px));gap:8px}
+.tiles.top .tile{padding:6px 10px}
+.tiles.top .tile .v{font-size:16px}
+.tiles.top .tile .k{font-size:11px}
+#mx .tiles{grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+#mx .tile{padding:6px 10px}
+#mx .tile .v{font-size:16px}
+#mx .tile .k,#mx .tile .s{font-size:11px}
+#mx-body > .side:not(#w-cov) svg.lc{max-width:460px}
+#mx-body > .side:not(#w-cov){grid-template-columns:minmax(0,460px) minmax(0,220px)!important;justify-content:start;gap:16px}
+#mx #w-cov .tile .v{font-size:inherit}
 .tile .v.bad{color:var(--low)}
 .tree-scroll{max-height:540px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 #dt-tree{display:block}
@@ -377,7 +400,7 @@ svg.lc{width:100%;height:auto;display:block}
   <section class="view" id="v-paper" hidden>
     <div>
       <h2 class="vh">Models</h2>
-      <p class="lead">Logistic Regression, tuned SVM, Random Forest, XGBoost and MaskMLP, all tested on the same 706 students and school-grouped folds.</p>
+      <p class="lead">Logistic Regression, tuned SVM, XGBoost and MaskMLP, all tested on the same 706 students and school-grouped folds.</p>
     </div>
     <div class="mv"><div class="rail" id="paper-rail"></div><div class="detail" id="paper-detail"></div></div>
   </section>
@@ -606,8 +629,8 @@ const MODELS={
    blurb:"The paper's main traditional baseline. Try it live below: change a child's fall values and watch the prediction.",
    render(){const cp=coefPanel("logit");return {html:head(this)+screenerPanel()+metTiles(MET.lr)+about(
      "Weights each of the 16 scaled features, adds them up, and squashes the sum through a sigmoid into a probability of high growth. Probability ≥ 0.5 means high growth. Weights are learned by L-BFGS, which minimizes log-loss in about a dozen iterations; there are no epochs.",
-     [["Pipeline","StandardScaler → LogisticRegression"],["Settings","L2 penalty, C = 1, solver lbfgs, max_iter 2000"],["Paper Table 1","accuracy 0.612 Word ID, 0.592 Word Attack (school split)"]])+cp.html+labPanel(),
-     after(){scrMount("lr");cp.after();tuneLab("lr",{penalty:"l2",C:1})}}}},
+     [["Pipeline","StandardScaler → LogisticRegression"],["Settings","L2 penalty, C = 1, solver lbfgs, max_iter 2000"],["Paper Table 1","accuracy 0.612 Word ID, 0.592 Word Attack (school split)"]])+cp.html,
+     after(){scrMount("lr");cp.after()}}}},
  linr:{name:"Linear Regression",owner:"Anupama",fam:"Linear regressor",sec:"paper",met:"linr",
    blurb:"Predicts the actual gain in points, then turns it into a label by comparing with the control-group bar.",
    render(){const cp=coefPanel("lin");return {html:head(this)+screenerPanel()+metTiles(MET.linr)+about(
@@ -679,7 +702,7 @@ const MODELS={
    blurb:"MaskMLP is designed for incomplete records and unlabeled students, so test it exactly there.",
    render(){return {html:head(this)+robustPanel(),after:robustAfter}}}
 };
-const PAPER=[["all",["lr","svm","rf","xgb","mask"]]];
+const PAPER=[["all",["lr","svm","xgb","mask"]]];
 const EXT=[["Anupama",["lasso","ridge","svm","dtdepth"]],["Megha",["nb","tune","fga"]],["Supriya",["knn","robust"]]];
 
 /* ---------- extra panels ---------- */
@@ -714,9 +737,9 @@ function impAfter(){const box=$("imp-body"),k=box.dataset.k;const draw=t=>{let r
   rows.sort((a,b)=>b.v-a.v);const mx=Math.max(...rows.map(r=>Math.abs(r.v)))*1.1;
   box.innerHTML=bars(rows.map(r=>({name:`${META[r.f][0]} <span class="mono" style="color:var(--muted);font-size:11px">${r.f}</span>`,vals:[r.v],colors:[r.v>=0?C("--navy"):C("--p")]})),[{name:"importance"}],{min:-mx,max:mx,fmt:v=>(v>=0?"+":"")+v.toFixed(3),minLabel:"hurts",maxLabel:"helps"})};
   segBind("imp-t",draw);draw("RMwidRS")}
-function marginPanel(){return "";return `<div class="panel"><h3>How an SVM draws the line <small>2 features shown; the real model uses 16</small></h3>
+function marginPanel(){return `<div class="panel"><h3>How an SVM draws the line <small>2 features shown; the real model uses 16</small></h3>
   <p style="margin:0;color:var(--muted)">Each dot is a student. The SVM builds the <b>widest road</b> it can between the two groups. The solid line is the boundary; the grey band is the margin.</p>
-  <svg id="mg-svg" class="lc" viewBox="0 0 680 430" role="img" aria-label="SVM margin drawn as a road between two groups of students" style="background:var(--bg);border-radius:8px">
+  <svg id="mg-svg" class="lc" viewBox="0 0 680 430" role="img" aria-label="SVM margin drawn as a road between two groups of students" style="background:var(--bg);border-radius:8px;max-width:440px">
     <polygon id="mg-road" style="fill:var(--track)"/>
     <line id="mg-m1" style="stroke:var(--muted)" stroke-width="1.4" stroke-dasharray="6 5"/><line id="mg-m2" style="stroke:var(--muted)" stroke-width="1.4" stroke-dasharray="6 5"/>
     <line id="mg-bd" style="stroke:var(--ink)" stroke-width="2.5" stroke-linecap="round"/><g id="mg-pts"></g>
@@ -757,7 +780,7 @@ function svmPanel(){return `<div class="panel" id="gs"><div class="panel-h"><h3>
   <div class="health"><div class="status" id="gs-status"></div><div class="tiles sm" id="gs-tiles"></div></div>
   <div class="panel" style="padding:12px 14px;background:var(--bg)"><div class="panel-h"><h3 style="font-size:17px">What the search sees vs what really happens</h3>
     <span class="legend"><span><i style="background:var(--navy);height:4px"></i>Best score inside the training schools</span><span><i style="background:var(--gold);height:4px"></i>Score on unseen schools</span><span><i style="background:var(--lowbg)"></i>Search overfits</span></span></div>
-    <div class="scroll"><svg id="gs-chart" class="lc" style="min-width:480px" role="img" aria-label="Inner vs test ROC AUC by grid size"></svg></div>
+    <div class="scroll"><svg id="gs-chart" class="lc" style="min-width:420px;max-width:560px" role="img" aria-label="Inner vs test ROC AUC by grid size"></svg></div>
     <p class="note">ROC AUC, mean of the 5 school folds. The blue line is the best setting's score in the inner 4-fold CV, which the search uses to pick. More settings always push it up, because with more tries one gets lucky on those folds. The gold line is the honest score on schools the search never saw.</p></div>
   <div id="gs-picks"></div>
   <details><summary style="cursor:pointer;color:var(--navy)">Table of all 10 search setups</summary><div id="svm-body" style="margin-top:8px"></div></details></div>`}
@@ -873,7 +896,7 @@ function rail(id,groups,sec){const box=$(id);box.className="picker";
   box.insertAdjacentHTML("afterend",`<div id="${id}-sum"></div>`)}
 function showModel(sec,k){cur[sec]=k;const railId=sec==="paper"?"paper-rail":"ext-rail",det=sec==="paper"?"paper-detail":"ext-detail";
   $(railId+"-sel").value=k;const tm=TEAM[MODELS[k].owner];$(railId+"-who").innerHTML=`<span class="dot" style="background:${C(tm.c)}"></span>${tm.name}`;
-  parkWidgets();$("paper-detail").innerHTML="";$("ext-detail").innerHTML="";$("paper-rail-sum").innerHTML="";$("ext-rail-sum").innerHTML="";sumRender(sec,k);const r=MODELS[k].render();$(det).innerHTML=r.html;r.after&&r.after();tabify($(det))}
+  parkWidgets();$("paper-detail").hidden=false;$("ext-detail").hidden=false;$("paper-detail").innerHTML="";$("ext-detail").innerHTML="";$("paper-rail-sum").innerHTML="";$("ext-rail-sum").innerHTML="";sumRender(sec,k);const r=MODELS[k].render();$(det).innerHTML=r.html;r.after&&r.after();tabify($(det))}
 function mount(wid,slot){$(slot).appendChild($(wid))}
 function parkWidgets(){["w-pred","w-dt","w-tsne","w-cov"].forEach(w=>$("lib").appendChild($(w)))}
 
@@ -893,13 +916,13 @@ function tuneLab(m,init,sw){
   const lab=v=>PLAB[v]??String(v);
   $("tl").innerHTML=`<div class="controls" id="tl-ctl"></div>
     <div class="health"><div class="status" id="tl-status"></div><div class="tiles sm" id="tl-tiles"></div></div>
-    <div class="panel" style="padding:12px 14px;background:var(--bg)">
+    <div class="tl-row"><div class="panel" style="padding:12px 14px;background:var(--bg);margin:0">
       <div class="panel-h"><h3 style="font-size:17px">Train vs test as <span id="tl-xname"></span> changes</h3>
-        <span class="legend"><span><i style="background:var(--navy);height:4px"></i>Train</span><span><i style="background:var(--gold);height:4px"></i>Test (unseen schools)</span><span><i style="background:var(--a3);height:4px"></i>Test ROC AUC</span><span><i style="background:var(--lowbg)"></i>Gap &gt; 0.10</span></span></div>
-      <div class="ctl"><span class="lbl">X-axis</span><div class="seg" id="tl-x">${keys.filter(num).map(k=>`<button data-v="${k}"${k===st.x?' class="on"':""}>${PNAME[k]}</button>`).join("")}</div></div>
-      <div class="scroll"><svg id="tl-chart" class="lc" style="min-width:480px" role="img" aria-label="Accuracy as the setting changes"></svg></div>
-      <div id="tl-best" class="note"></div></div>
-    <div class="panel" style="padding:12px 14px"><h3 style="font-size:17px" id="tl-imph"></h3><div id="tl-imp"></div></div>`;
+        <span class="legend"><span><i style="background:var(--navy);height:4px"></i>Train</span><span><i style="background:var(--gold);height:4px"></i>Test (unseen schools)</span><span><i style="background:var(--lowbg)"></i>Gap &gt; 0.10</span></span></div>
+      <div class="ctl"${keys.filter(num).length<2?" hidden":""}><span class="lbl">X-axis</span><div class="seg" id="tl-x" style="width:fit-content">${keys.filter(num).map(k=>`<button data-v="${k}"${k===st.x?' class="on"':""}>${PNAME[k]}</button>`).join("")}</div></div>
+      <div class="scroll"><svg id="tl-chart" class="lc" style="min-width:480px;max-width:640px" role="img" aria-label="Accuracy as the setting changes"></svg></div>
+      <div id="tl-best" class="note" hidden></div></div>
+    <div class="panel" style="padding:12px 14px;margin:0"><h3 style="font-size:17px" id="tl-imph"></h3><div id="tl-imp"></div></div></div>`;
   function ctl(){
     $("tl-ctl").innerHTML=`<div class="ctl"><span class="lbl">Target</span><div class="seg" id="tl-t"><button data-v="RMwidRS"${st.t==="RMwidRS"?' class="on"':""}>Word ID</button><button data-v="RMwdaRS"${st.t==="RMwdaRS"?' class="on"':""}>Word Attack</button></div></div>`+
       keys.map(k=>{const vs=G[k],off=m==="svm"&&k==="gamma"&&lin();
@@ -916,8 +939,9 @@ function tuneLab(m,init,sw){
   function draw(){
     const r=row(st);if(!r)return;const gap=r.tr-r.te;
     let cls,h,msg;if(gap>.10){cls="bad";h="Overfitting";msg=`Train is ${(gap*100).toFixed(0)} points above test: it memorizes the training schools.`}
-    else if(gap>.05){cls="warn";h="Starting to overfit";msg=`A ${(gap*100).toFixed(1)}-point gap between train and test.`}
+    else if(gap>.06){cls="warn";h="Starting to overfit";msg=`A ${(gap*100).toFixed(1)}-point gap between train and test.`}
     else if(r.te<.56){cls="warn";h="Underfitting";msg="Train and test are both low: the model is too simple or too constrained."}
+    else if(gap>.04){cls="warn";h="Borderline";msg=`A ${(gap*100).toFixed(1)}-point gap: close to the line, within normal fold-to-fold variation.`}
     else{cls="ok";h="Healthy fit";msg=`Train and test within ${(gap*100).toFixed(1)} points.`}
     $("tl-status").className="status "+cls;$("tl-status").innerHTML=`<span class="lbl">Model health</span><span class="s">${h}</span><p>${msg}</p>`;
     $("tl-tiles").innerHTML=[["Train acc",r.tr.toFixed(3)],["Test acc",r.te.toFixed(3),0,`± ${r.sd.toFixed(3)}`],["Gap",gap.toFixed(3),gap>.1],["ROC AUC",r.roc.toFixed(3)],["PR-AUC",r.pr.toFixed(3)]]
@@ -926,7 +950,7 @@ function tuneLab(m,init,sw){
     $("tl-x").querySelectorAll("button").forEach(b=>{b.classList.toggle("on",b.dataset.v===st.x);b.disabled=lin()&&b.dataset.v==="gamma"});
     $("tl-xname").textContent=PNAME[st.x];
     const vs=G[st.x],pts=vs.map((v,i)=>[i,row({...st,[st.x]:v})]).filter(p=>p[1]);
-    lines($("tl-chart"),[{name:"train",color:"--navy",pts:pts.map(p=>[p[0],p[1].tr])},{name:"test",color:"--gold",pts:pts.map(p=>[p[0],p[1].te])},{name:"roc",color:"--a3",dash:"6 4",pts:pts.map(p=>[p[0],p[1].roc])}],
+    lines($("tl-chart"),[{name:"train",color:"--navy",pts:pts.map(p=>[p[0],p[1].tr])},{name:"test",color:"--gold",pts:pts.map(p=>[p[0],p[1].te])}],
       {W:700,H:250,xs:vs.map((v,i)=>({x:i,label:lab(v)})),xmin:0,xmax:vs.length-1,ymin:.45,ymax:1,yt:[.5,.6,.7,.8,.9,1],yfmt:v=>v.toFixed(1),xlabel:PNAME[st.x],
        vx:vs.map(String).indexOf(String(st[st.x])),shade:pts.filter(p=>p[1].tr-p[1].te>.1).map(p=>p[0])});
     // best in grid
@@ -944,7 +968,7 @@ function tuneLab(m,init,sw){
     else if(r.coef){$("tl-imph").textContent=`Coefficients · ${r.nz} of 16 features used`;const rows=r.coef.map((v,i)=>[i,v]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,8),mx=Math.max(...rows.map(a=>Math.abs(a[1])),.05)*1.05;
       $("tl-imp").innerHTML=bars(rows.map(([i,v])=>({name:META[F[i]][0],vals:[v],colors:[v>=0?C("--good"):C("--low")]})),[{name:"coef"}],{min:-mx,max:mx,axis:false,fmt:v=>(v>=0?"+":"")+v.toFixed(2)})+`<p class="note">Top 8 by size. With L1 and small C, weak features drop to exactly 0.</p>`}
     else{$("tl-imph").textContent="Precision and recall";const [tn2,fp2,fn2,tp2]=r.cm,pr=tp2/(tp2+fp2),rc=tp2/(tp2+fn2);
-      $("tl-imp").innerHTML=bars([{name:"Precision",vals:[pr]},{name:"Recall",vals:[rc]},{name:"Specificity",vals:[tn2/(tn2+fp2)]}],[{name:""}],{min:0,max:1})+`<p class="note">${m==="svm"?"An SVM with an RBF kernel has no per-feature weights.":"kNN has no feature weights: it only compares distances."} Recall = share of high-growth students it catches.</p>`}
+      $("tl-imp").innerHTML=bars([{name:"Precision",vals:[pr]},{name:"Recall",vals:[rc]}],[{name:""}],{min:0,max:1})+`<p class="note">${m==="svm"?(st.kernel==="linear"?"":"An SVM with an RBF kernel has no per-feature weights."):"kNN has no feature weights: it only compares distances."} Recall = share of high-growth students it catches.</p>`}
   }
   ctl();draw();
 }
@@ -964,7 +988,7 @@ function perFold(d,fn){const r=[];for(let f=1;f<=5;f++){const ix=d.f.map((v,i)=>
 const thin=(p,n=160)=>p.length<=n?p:p.filter((_,i)=>i%Math.ceil(p.length/n)===0||i===p.length-1);
 function cmAt(d,t){let tn=0,fp=0,fn=0,tp=0;d.s.forEach((v,i)=>{const p=v>=t?1:0,y=d.y[i];if(p&&y)tp++;else if(p)fp++;else if(y)fn++;else tn++});return [tn,fp,fn,tp]}
 function mxButton(k){return MXMAP[k]?`<button id="mx-btn" class="mxb" aria-expanded="false">Metrics</button>`:""}
-function mxBind(k){if(!MXMAP[k])return;const b=$("mx-btn");b.onclick=()=>{const box=$("mx");const open=box.hidden;box.hidden=!open;b.classList.toggle("on",open);b.setAttribute("aria-expanded",open);if(open)mxRender(k)}}
+function mxBind(k){if(!MXMAP[k])return;const b=$("mx-btn");b.onclick=()=>{const box=$("mx");const open=box.hidden;box.hidden=!open;["paper-detail","ext-detail"].forEach(i=>{if($(i))$(i).hidden=open});b.classList.toggle("on",open);b.setAttribute("aria-expanded",open);if(open)mxRender(k)}}
 function mxRender(k){
   const map=MXMAP[k],vars=map.p||map.f,isF=!map.p;
   const st={v:vars[0],t:"RMwidRS",tab:"pr",thr:null};
@@ -972,7 +996,7 @@ function mxRender(k){
     <div class="controls">${vars.length>1?`<div class="seg" id="mx-v">${vars.map((v,i)=>`<button data-v="${v}"${i?"":' class="on"'}>${MXN[v]}</button>`).join("")}</div>`:""}
     <div class="seg" id="mx-t"><button data-v="RMwidRS" class="on">Word ID</button><button data-v="RMwdaRS">Word Attack</button></div></div></div>
     <div class="seg" id="mx-tab" style="justify-self:start"><button data-v="pr" class="on">Precision &amp; recall</button><button data-v="err">Error metrics</button>${k==="lr"?'<button data-v="corr">Correlation matrix</button>':""}</div>
-    <div id="mx-thr"></div><div id="mx-body"></div><p class="note" id="mx-note"></p></div>`;
+    <div id="mx-thr" class="thr-sm"></div><div id="mx-body"></div><p class="note" id="mx-note"></p></div>`;
   const D0=()=>isF?MX.fold[st.v][st.t]:MX.pred[st.v][st.t];
   function thrCtl(){const d=D0();if(isF||st.tab==="roc"||st.tab==="corr"){$("mx-thr").innerHTML="";return}
     const g=d.kind==="gain";if(st.thr==null)st.thr=d.thr;
@@ -988,7 +1012,7 @@ function mxRender(k){
     if(isF){const r=d,rate=v=>(v*100).toFixed(1)+"%";
       if(st.tab==="roc")B.innerHTML=tl([["ROC AUC",f3(r.roc_auc),"mean of 5 test folds"],["Balanced accuracy",f3(r.balanced_accuracy),"= the paper's \"AUC\""]]);
       if(st.tab==="cm")B.innerHTML=`<div class="cm" style="max-width:560px"><span></span><span class="h">Predicted low</span><span class="h">Predicted high</span><span class="rh">Actual low</span><div class="c ok">${rate(r.specificity)}<small>correct (specificity)</small></div><div class="c no">${rate(1-r.specificity)}<small>false alarm</small></div><span class="rh">Actual high</span><div class="c no">${rate(1-r.sensitivity)}<small>missed</small></div><div class="c ok">${rate(r.sensitivity)}<small>correct (recall)</small></div></div>`;
-      if(st.tab==="pr")B.innerHTML=tl([["Recall (sensitivity)",f3(r.sensitivity),"high-growth caught"],["Specificity",f3(r.specificity),"low-growth caught"],["PR-AUC",f3(r.pr_auc)],["Accuracy",f3(r.accuracy)]]);
+      if(st.tab==="pr")B.innerHTML=tl([["Recall (sensitivity)",f3(r.sensitivity),"high-growth caught"],["PR-AUC",f3(r.pr_auc)],["Accuracy",f3(r.accuracy)]]);
       if(st.tab==="err")B.innerHTML=tl([["Error rate",f3(1-r.accuracy),"1 − accuracy"],["False alarm rate",f3(1-r.specificity),"1 − specificity"],["Miss rate",f3(1-r.sensitivity),"1 − recall"],["Balanced error",f3(1-r.balanced_accuracy)]]);
       N.textContent=`Averages over the 5 school folds of Supriya's seed-42 run (936 students). The repo keeps per-fold scores but not per-student predictions, so the matrix shows row percentages and curves can't be drawn.`;return}
     const g=d.kind==="gain",t=st.thr??d.thr,cm=cmAt(d,t),[tn,fp,fn,tp]=cm,tot=tn+fp+fn+tp;
@@ -1003,7 +1027,7 @@ function mxRender(k){
         ${tl([["Accuracy",f3(acc)],["Students",tot]])}</div>`;
       N.textContent="Every student appears once, scored by the model that never saw their school. Move the threshold to trade false positives for false negatives."}
     if(st.tab==="pr"){const pts=prPts(d.s,d.y),fa=perFold(d,(s,y)=>ap(prPts(s,y))),base=d.y.reduce((a,b)=>a+b,0)/d.y.length;
-      B.innerHTML=`<div class="side" style="grid-template-columns:minmax(0,1fr) minmax(0,260px)"><svg id="mx-c" class="lc" role="img" aria-label="Precision-recall curve"></svg>${tl([["Precision",f3(prec),"flagged high that really are"],["Recall",f3(rec),"high-growth students caught"],["F1 score",f3(f1)],["Specificity",f3(spec)],["PR-AUC",f3(fa),"mean of 5 folds"]])}</div>`;
+      B.innerHTML=`<div class="side" style="grid-template-columns:minmax(0,1fr) minmax(0,260px)"><svg id="mx-c" class="lc" role="img" aria-label="Precision-recall curve"></svg>${tl([["Precision",f3(prec),"flagged high that really are"],["Recall",f3(rec),"high-growth students caught"],["PR-AUC",f3(fa),"mean of 5 folds"]])}</div>`;
       lines($("mx-c"),[{name:"base",color:"--p",dash:"5 4",nodots:true,pts:[[0,base],[1,base]]},{name:"pr",color:"--a2",nodots:true,w:2.6,pts:thin(pts)}],
         {W:520,H:340,xs:[0,.25,.5,.75,1].map(x=>({x,label:x})),xmin:0,xmax:1,ymin:.3,ymax:1,yt:[.4,.6,.8,1],yfmt:v=>v.toFixed(1),xlabel:"Recall",pt:[rec,prec]});
       N.innerHTML=`Dashed line = precision of guessing (the share of high-growth students, ${(base*100).toFixed(0)}%). Y-axis: precision. Orange dot = current threshold.`}
@@ -1041,7 +1065,7 @@ function sumRender(sec,k){const id=(sec==="paper"?"paper-rail":"ext-rail")+"-sum
   const draw=()=>{const mk=SUMK[sec],s=[{name:"Word ID",color:C("--a1")},{name:"Word Attack",color:C("--a2")}];
     const rows=SUMLIST[sec].map(([mm,mt,n])=>{const x=MET[mt||MODELS[mm].met];return {name:n||MODELS[mm].name,link:`#${MODELS[mm].sec==="paper"?"paper":"extended"}-${mm}`,dot:C(TEAM[MODELS[mm].owner].c),vals:[x.wid[mk],x.wda[mk]],avg:(x.wid[mk]+x.wda[mk])/2,hl:mm===k}}).sort((a,b)=>b.avg-a.avg);
     $(id+"-c").innerHTML=`<div class="legend">${legend(s)}</div>`+bars(rows,s,{min:mk==="acc"?.5:.55,max:mk==="acc"?.7:.75,ref:mk==="acc"?MET.lr.wid.acc:MET.lr.wid.pr})};
-  const tiles=me?`<div class="tiles"><div class="tile"><span class="k">Word ID accuracy</span><span class="v">${f3(me.wid.acc)}</span></div><div class="tile"><span class="k">Word ID PR-AUC</span><span class="v">${f3(me.wid.pr)}</span></div><div class="tile"><span class="k">Word Attack accuracy</span><span class="v">${f3(me.wda.acc)}</span></div><div class="tile"><span class="k">Word Attack PR-AUC</span><span class="v">${f3(me.wda.pr)}</span></div></div>`
+  const tiles=me?`<div class="tiles top"><div class="tile"><span class="k">Word ID accuracy</span><span class="v">${f3(me.wid.acc)}</span></div><div class="tile"><span class="k">Word ID PR-AUC</span><span class="v">${f3(me.wid.pr)}</span></div><div class="tile"><span class="k">Word Attack accuracy</span><span class="v">${f3(me.wda.acc)}</span></div><div class="tile"><span class="k">Word Attack PR-AUC</span><span class="v">${f3(me.wda.pr)}</span></div></div>`
     :`<p class="note">${m.name} is an analysis, not a single model, so it has no one score. Its results are below.</p>`;
   const tm=TEAM[m.owner];
   $(id).innerHTML=`<div class="panel"><div class="panel-h"><div style="display:grid;gap:2px"><span class="tag"><span class="dot" style="background:${C(tm.c)}"></span>${tm.name} · ${m.fam}</span><h3 style="font-size:24px">${m.name}</h3></div>${mxButton(k)}</div>${tiles}</div><div id="mx" hidden style="margin-top:16px"></div>`;mxBind(k)}
@@ -1093,10 +1117,10 @@ const PS={};const READING=["NWFcls","NWFwrc","ORFwc","SAwrS","SAsrS","SAtoS","RM
 const STEP={grp_rate:.01,rcmistot:.01,gnrl_fid:.01,TKPctCrct:.1};const step=k=>STEP[k]||1;
 const fmtv=(k,v)=>{const s=step(k);return s>=1?String(Math.round(v)):s>=.1?v.toFixed(1):v.toFixed(2)};
 const snap=(k,v)=>Math.round(v/step(k))*step(k);
-const SCR_KEY=["RMwidRS","RMwdaRS","NWFcls","ORFwc","Tx"];
+const SCR_KEY=["RMwidRS","RMwdaRS","Tx"];
 function predBuild(){const root=$("inputs");
   const tg=document.createElement("button");tg.id="scr-all";tg.textContent="Show all 16 features";tg.style.justifySelf="start";
-  tg.onclick=()=>{const on=root.classList.toggle("all");tg.textContent=on?"Show key features only":"Show all 16 features"};root.appendChild(tg);
+  tg.onclick=()=>{const on=root.classList.toggle("all");tg.textContent=on?"Show key features only":"Show all 16 features"};
   for(const [g,title] of [["r","Reading tests (fall)"],["s","About the student"],["c","About the classroom"]]){
     const sec=document.createElement("div");sec.className="pgroup"+(F.some(k=>META[k][2]===g&&SCR_KEY.includes(k))?"":" nonkey");sec.innerHTML=`<h4>${title}</h4>`;
     for(const k of F.filter(k=>META[k][2]===g)){const i=F.indexOf(k),d=document.createElement("div");
@@ -1112,8 +1136,8 @@ function predBuild(){const root=$("inputs");
   $("scr-auto").onclick=scrAuto;
   segBind("presets",preset);segBind("scr-eng",v=>{SCR.e=v;predRender()});preset("typ")}
 function preset(p){SCR.real=null;
-  if(p==="real"){const i=Math.floor(Math.random()*REAL.length),r=REAL[i];F.forEach((k,j)=>PS[k]=snap(k,r[j]));SCR.real={n:i+1,y:{RMwidRS:r[16],RMwdaRS:r[17]},tx:r[1]};predRender();return}
-  F.forEach((k,i)=>PS[k]=snap(k,P.median[i]));if(p!=="typ")READING.forEach(k=>PS[k]=snap(k,(p==="low"?P.p10:P.p90)[F.indexOf(k)]));PS.Tx=0;predRender()}
+  if(p==="real"){const i=Math.floor(Math.random()*REAL.length),r=REAL[i];F.forEach((k,j)=>PS[k]=snap(k,SCR_KEY.includes(k)?r[j]:P.median[j]));SCR.real={n:i+1,y:{RMwidRS:r[16],RMwdaRS:r[17]},tx:r[1]};predRender();return}
+  F.forEach((k,i)=>PS[k]=snap(k,P.median[i]));if(p!=="typ")["RMwidRS","RMwdaRS"].forEach(k=>PS[k]=snap(k,(p==="low"?P.p10:P.p90)[F.indexOf(k)]));PS.Tx=0;predRender()}
 function scrAuto(){const b=$("scr-auto");if(SCR.timer){clearInterval(SCR.timer);SCR.timer=null;b.textContent="Auto-play";return}
   const steps=[["typ","xgb",0],["low","xgb",0],["low","xgb",1],["high","xgb",0],["real","xgb",null],["same","lr",null],["same","mlp",null],["real","rf",null]];let i=0;
   const go=()=>{if(!$("w-pred").offsetParent||i>=steps.length){clearInterval(SCR.timer);SCR.timer=null;b.textContent="Auto-play";return}
@@ -1147,7 +1171,7 @@ function predRender(){
   $("scr-sum").textContent=ST[2];
   T.forEach(([t,name],i)=>{const o=out[i];$("ring-"+t).innerHTML=scrRing(name,o,e)});
   // why: change one feature at a time back to the typical (median) value
-  const base=scrAgg(e,x),why=F.map((k,i)=>{const x2=x.slice();x2[i]=snap(k,P.median[i]);return [k,i,base-scrAgg(e,x2)]}).filter(w=>Math.abs(w[2])>(e==="linr"?0.05:0.004)).sort((a,b)=>Math.abs(b[2])-Math.abs(a[2])).slice(0,3);
+  const base=scrAgg(e,x),why=F.map((k,i)=>{const x2=x.slice();x2[i]=snap(k,P.median[i]);return [k,i,base-scrAgg(e,x2)]}).filter(w=>SCR_KEY.includes(w[0])&&Math.abs(w[2])>(e==="linr"?0.05:0.004)).sort((a,b)=>Math.abs(b[2])-Math.abs(a[2])).slice(0,3);
   $("scr-why").innerHTML=why.length?`<ul class="pts" style="font-size:14px">${why.map(([k,i,d])=>`<li><b>${META[k][0]}</b> is ${fmtv(k,PS[k])} (typical ${fmtv(k,P.median[i])}): pushes toward <b style="color:var(${d>0?"--good":"--low"})">${d>0?"higher":"lower"} growth</b> (${d>0?"+":"−"}${e==="linr"?Math.abs(d).toFixed(1)+" points of predicted gain":(Math.abs(d)*100).toFixed(0)+" points of probability"})</li>`).join("")}</ul>`
     :`<p style="margin:0;font-size:14px">This student is close to typical on every feature, so the prediction is close to the average student's.</p>`;
   $("scr-why-note").textContent=`Each line: how the prediction moves when that one value is set back to the typical student's value, everything else kept. Works the same way for every model.`;
@@ -1194,7 +1218,7 @@ function predRender(){
   const rc=$("scr-real-card");rc.hidden=!SCR.real;
   if(SCR.real){const R2=SCR.real;$("scr-real").innerHTML=`<p style="margin:0 0 6px;font-size:14px">Anonymized record ${R2.n} of the 706 students${PS.Tx!==R2.tx?" (intervention flag changed from the real one)":""}.</p>`+T.map(([t,name],i)=>{const act=R2.y[t],pred=out[i].hi?1:0,ok=act===pred;
     return `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px;padding:4px 0;border-top:1px solid var(--line)"><span>${name}: actually <b>${act?"high growth":"lower growth"}</b></span><span class="pill ${ok?"yes":"no"}">model ${ok?"right":"wrong"}</span></div>`}).join("")+
-    `<p class="note" style="margin:6px 0 0">These models saw this student while training, so this shows the fit, not a test on new schools (about 60–66% accuracy).</p>`}
+    `<p class="note" style="margin:6px 0 0">Uses this student's real Word ID, Word Attack and reading program; the other inputs are set to typical values.</p>`}
 }
 const SCR={e:"xgb"};
 const SCR_N={svm:"SVM (tuned)",xgb:"Tuned XGBoost",rf:"Random Forest",lr:"Logistic Regression",linr:"Linear Regression",dt:"Decision Tree",mlp:"3-layer MLP"};
