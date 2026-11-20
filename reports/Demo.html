@@ -326,12 +326,11 @@ svg.lc{width:100%;height:auto;display:block}
       <div class="panel-h"><h3>Paper Table 1 vs our reproduction <small>936 students, all students subset</small></h3>
         <div class="controls">
           <div class="seg" id="t1-split"><button data-v="school" class="on">School split</button><button data-v="student">Student split</button></div>
-          <div class="seg" id="t1-metric"><button data-v="acc" class="on">Accuracy</button><button data-v="auc">"AUC" = balanced acc.</button></div>
+          <div class="seg" id="t1-metric" hidden><button data-v="acc" class="on">Accuracy</button></div>
         </div></div>
       <div class="legend"><span><i style="background:var(--p)"></i>Paper</span><span><i style="background:var(--a3)"></i>Ours</span></div>
       <div id="t1-chart" class="grid2"></div>
-      <p class="note">Same folds and rows for all six models (Supriya's controlled comparison). The paper's "AUC" values equal
-        balanced accuracy, so that view compares like with like. Traditional models land within about 0.02 of the paper; the neural models about 0.08 below.</p>
+      <p class="note">Same folds and rows for all six models (Supriya's controlled comparison). Traditional models land within about 0.02 of the paper; the neural models about 0.08 below.</p>
     </div>
   </section>
 
@@ -400,7 +399,6 @@ svg.lc{width:100%;height:auto;display:block}
   <section class="view" id="v-paper" hidden>
     <div>
       <h2 class="vh">Models</h2>
-      <p class="lead">Logistic Regression, tuned SVM, XGBoost and MaskMLP, all tested on the same 706 students and school-grouped folds.</p>
     </div>
     <div class="mv"><div class="rail" id="paper-rail"></div><div class="detail" id="paper-detail"></div></div>
   </section>
@@ -629,8 +627,8 @@ const MODELS={
    blurb:"The paper's main traditional baseline. Try it live below: change a child's fall values and watch the prediction.",
    render(){const cp=coefPanel("logit");return {html:head(this)+screenerPanel()+metTiles(MET.lr)+about(
      "Weights each of the 16 scaled features, adds them up, and squashes the sum through a sigmoid into a probability of high growth. Probability ≥ 0.5 means high growth. Weights are learned by L-BFGS, which minimizes log-loss in about a dozen iterations; there are no epochs.",
-     [["Pipeline","StandardScaler → LogisticRegression"],["Settings","L2 penalty, C = 1, solver lbfgs, max_iter 2000"],["Paper Table 1","accuracy 0.612 Word ID, 0.592 Word Attack (school split)"]])+cp.html,
-     after(){scrMount("lr");cp.after()}}}},
+     [["Pipeline","StandardScaler → LogisticRegression"],["Settings","L2 penalty, C = 1, solver lbfgs, max_iter 2000"],["Paper Table 1","accuracy 0.612 Word ID, 0.592 Word Attack (school split)"]])+cp.html+labPanel(),
+     after(){scrMount("lr");cp.after();tuneLab("lr",{penalty:"l2",C:1})}}}},
  linr:{name:"Linear Regression",owner:"Anupama",fam:"Linear regressor",sec:"paper",met:"linr",
    blurb:"Predicts the actual gain in points, then turns it into a label by comparing with the control-group bar.",
    render(){const cp=coefPanel("lin");return {html:head(this)+screenerPanel()+metTiles(MET.linr)+about(
@@ -663,9 +661,9 @@ const MODELS={
      [["Training","Adam, lr 1e-3, batch 64, ≤ 100 epochs, early stopping on a grouped 20% validation split (patience 15)"],["Inputs","min-max scaled, missing = −1"],["Rows","936 per target (paper rule) and 706 (complete)"]])+diagPanel(),after(){diagDraw();scrMount("mlp")}}}},
  mask:{name:"MaskMLP",owner:"Supriya",fam:"Self-supervised neural network",sec:"paper",met:"mask",
    blurb:"The paper's proposed model: pretrain on all 6,916 students by masking features, then fine-tune on the labelled ones.",
-   render(){return {html:head(this)+nnTable(["MaskMLP"])+rankPanel()+diagPanel()+extraPanel()+about(
+   render(){return {html:head(this)+nnTable(["MaskMLP"])+rankPanel()+extraPanel()+about(
      "Pretraining hides exactly 25% of each student's observed features and teaches the encoder to map the masked and full versions to similar embeddings (cosine loss). The pretrained encoder is then fine-tuned with labels. Pretraining needs no labels, so it uses all 6,916 students.",
-     [["Masking","hide 25% of each student's observed values (set to −1)"],["Pretraining","cosine embedding loss, ≤ 100 epochs"],["Fine-tuning","BCE, same settings as the MLPs"]])+collapsePanel()+lossPanel(),after(){collapseDraw();lossDraw();diagDraw()}}}},
+     [["Masking","hide 25% of each student's observed values (set to −1)"],["Pretraining","cosine embedding loss, ≤ 100 epochs"],["Fine-tuning","BCE, same settings as the MLPs"]]),after(){}}}},
  lasso:{name:"Lasso (L1) Logistic Regression",owner:"Anupama",fam:"Regularized linear",sec:"ext",met:"lasso",
    blurb:"Logistic Regression with an L1 penalty that can switch features off entirely.",
    render(){return {html:head(this)+metTiles(MET.lasso)+about("Adds the sum of absolute weights to the loss. Small C means a strong penalty and pushes weak features to exactly zero, giving a sparser model. C is chosen inside the training folds.",
@@ -944,7 +942,7 @@ function tuneLab(m,init,sw){
     else if(gap>.04){cls="warn";h="Borderline";msg=`A ${(gap*100).toFixed(1)}-point gap: close to the line, within normal fold-to-fold variation.`}
     else{cls="ok";h="Healthy fit";msg=`Train and test within ${(gap*100).toFixed(1)} points.`}
     $("tl-status").className="status "+cls;$("tl-status").innerHTML=`<span class="lbl">Model health</span><span class="s">${h}</span><p>${msg}</p>`;
-    $("tl-tiles").innerHTML=[["Train acc",r.tr.toFixed(3)],["Test acc",r.te.toFixed(3),0,`± ${r.sd.toFixed(3)}`],["Gap",gap.toFixed(3),gap>.1],["ROC AUC",r.roc.toFixed(3)],["PR-AUC",r.pr.toFixed(3)]]
+    $("tl-tiles").innerHTML=[["Train acc",r.tr.toFixed(3)],["Test acc",r.te.toFixed(3),0,`± ${r.sd.toFixed(3)}`],["Gap",gap.toFixed(3),gap>.1]]
       .map(([k,v,b,s])=>`<div class="tile"><span class="k">${k}</span><span class="v${b?" bad":""}">${v}</span>${s?`<span class="s">${s}</span>`:""}</div>`).join("");
     // curve
     $("tl-x").querySelectorAll("button").forEach(b=>{b.classList.toggle("on",b.dataset.v===st.x);b.disabled=lin()&&b.dataset.v==="gamma"});
